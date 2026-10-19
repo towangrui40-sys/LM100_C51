@@ -1,6 +1,6 @@
 //############################################################
 // FILE:  Task_manager.c
-// Created on: 2022Äê2ÔÂ20ÈÕ
+// Created on: 2022å¹?æœ?0æ—?
 // Author: Jason
 // summary: Task_manager
 //############################################################
@@ -23,7 +23,7 @@ void Timer_Task_Count(void)
  {
   if((TasksPare[Task_Count].Task_Count<TasksPare[Task_Count].Task_Period)&&(TasksPare[Task_Count].Task_Period>0))
   {
-	  TasksPare[Task_Count].Task_Count++;   // ¼ÆÊý ÊÂ¼þÈÎÎñ¼ÆÊý
+	  TasksPare[Task_Count].Task_Count++;   // è®¡æ•° äº‹ä»¶ä»»åŠ¡è®¡æ•°
   }
  }
 }
@@ -35,102 +35,123 @@ void Execute_Task_List_RUN(void)
  {
   if((TasksPare[Task_Count].Task_Count>=TasksPare[Task_Count].Task_Period)&&(TasksPare[Task_Count].Task_Period > 0))
   {
-		TasksPare[Task_Count].Task_Function();  // ÔËÐÐ¼ÆÊýµÄÊ±¼äÈÎÎñº¯Êý
+		TasksPare[Task_Count].Task_Function();  // è¿è¡Œè®¡æ•°çš„æ—¶é—´ä»»åŠ¡å‡½æ•?
 	  TasksPare[Task_Count].Task_Count=0;
   }
  }
 }
-#define SPK_TIME_OUT_TIMES 5		   //·äÃùÆ÷Ïì5´Î
-void Task_Timer_Sec(void)  //  250msÔËÐÐÒ»´Î
+#define SPK_TIME_OUT_TIMES 5		   //èœ‚é¸£å™¨å“5æ¬?
+#define MOTOR_PHASE_SEC 6			   //µç»úÕý×ª/Í£Ö¹/·´×ª/Í£Ö¹£¬Ã¿¶ÎÊ±¼ä£¨Ãë£©
+void Task_Timer_Sec(void)  //  250msè¿è¡Œä¸€æ¬?
 {
-	static u16 xdata state = 0;
-	static u16 xdata flag = 0;
+	static u16 xdata motor_step = 0;	// 0:Æô¶¯Õý×ª 1:Õý×ª 2:Í£Ö¹ 3:·´×ª 4:Í£Ö¹
+	static u16 xdata motor_timer = 0;	// µ±Ç°½×¶ÎÊ£ÓàÃëÊý
 	static u16 xdata tick = 0;
 	tick++;	
-	if(tick >= 4)    //250ms½øÒ»´Î£¬4´ÎÎª1s
+	if(tick >= 4)    //250msè¿›ä¸€æ¬¡ï¼Œ4æ¬¡ä¸º1s
 	{
 		tick = 0;
 
-		if(win_str_data.state == FSM_FREEZE)
+		if(win_str_data.state == FSM_FREEZE && win_str_data.use_cooling_time > 0)
 		{
 			win_str_data.use_cooling_time --;
 		}
 		if(win_str_data.state == FSM_FREEZE ||  win_str_data.state == FSM_RUN)
 		{
-			win_str_data.total_time--;
-			win_disp_total_time(win_str_data.total_time);
-			win_str_data.used_time++;
+			if(win_str_data.total_time > 0)
+			{
+				win_str_data.total_time--;
+				win_disp_total_time(win_str_data.total_time);
+			}
+			win_str_data.used_time++;   // è¿è¡Œ1ç§’ï¼Œç´¯è®¡è¿è¡Œæ—¶é—´åŠ?ç§?
 		}
 		
+		/* ×¼±¸×´Ì¬£ºµç»úÑ­»·¸´Î»£¬±ÜÃâÉÏ´ÎÖÐÍ¾Í£Ö¹ºó²ÐÁô¼ÆÊ± */
 		if(win_str_data.state == FSM_READY)
-			state = 0;
+		{
+			motor_step = 0;
+			motor_timer = 0;
+		}
+
+		/* ¼ÓÒººÍ½µÎÂ½×¶Î£ºÕý×ª -> Í£Ö¹£¨¼ÓÒº½×¶Î³ÆÖØ£© -> ·´×ª -> Í£Ö¹£¨¼ÓÒº½×¶Î³ÆÖØ£© */
 		if(win_str_data.state == FSM_FEED_LIQUOR || win_str_data.state == FSM_FREEZE)
 		{
-			flag ++;
-			if(state == 0)
+			/* æ¯è¿›ä¸€æ¬?ç§’ä»»åŠ¡ï¼Œé˜¶æ®µè®¡æ—¶å‡? */
+			if(motor_timer > 0) motor_timer--;
+
+			switch(motor_step)
 			{
-				RTU_Cmd_Pending(RTU_START,MC_FWD); 
-				state = 1;
+				case 0:		/* å¯åŠ¨æ­£è½¬ï¼Œå¹¶å¼€å§‹æ­£è½¬è®¡æ—?*/
+					RTU_Cmd_Pending(RTU_START,MC_FWD);
+					motor_timer = MOTOR_PHASE_SEC;
+					motor_step = 1;
+					break;
+
+				case 1:		/* Õý×ªÊ±¼äµ½£¬Í£Ö¹µç»ú */
+					if(motor_timer == 0)
+					{
+						RTU_Cmd_Pending(RTU_STOP,MC_STOP);
+						motor_timer = MOTOR_PHASE_SEC;
+						motor_step = 2;
+					}
+					break;
+
+				case 2:		/* åœæ­¢æ—¶é—´åˆ°ï¼šåŠ æ¶²é˜¶æ®µè¯»å–é‡é‡ï¼Œç„¶åŽå¯åŠ¨åè½?*/
+					if(motor_timer == 0)
+					{
+						if(win_str_data.state == FSM_FEED_LIQUOR)
+						{
+							win_str_data.add_liquid = (win_str_data.measure_weight - win_str_data.save_weight)*10; //0.01ä¸?0g
+							if(win_str_data.add_liquid <= 0) win_str_data.add_liquid = 0;
+						}
+						RTU_Cmd_Pending(RTU_START,MC_REV);
+						motor_timer = MOTOR_PHASE_SEC;
+						motor_step = 3;
+					}
+					break;
+
+				case 3:		/* ·´×ªÊ±¼äµ½£¬Í£Ö¹µç»ú */
+					if(motor_timer == 0)
+					{
+						RTU_Cmd_Pending(RTU_STOP,MC_STOP);
+						motor_timer = MOTOR_PHASE_SEC;
+						motor_step = 4;
+					}
+					break;
+
+				case 4:		/* åœæ­¢æ—¶é—´åˆ°ï¼šåŠ æ¶²é˜¶æ®µè¯»å–é‡é‡ï¼Œç„¶åŽé‡æ–°å¯åŠ¨æ­£è½?*/
+					if(motor_timer == 0)
+					{
+						if(win_str_data.state == FSM_FEED_LIQUOR)
+						{
+							win_str_data.add_liquid = (win_str_data.measure_weight - win_str_data.save_weight)*10; //0.01ä¸?0g
+							if(win_str_data.add_liquid <= 0) win_str_data.add_liquid = 0;
+						}
+						RTU_Cmd_Pending(RTU_START,MC_FWD);
+						motor_timer = MOTOR_PHASE_SEC;
+						motor_step = 1;
+					}
+					break;
+
+				default:	/* å¼‚å¸¸é˜¶æ®µå€¼å¤ä½?*/
+					motor_step = 0;
+					motor_timer = 0;
+					break;
 			}
-			if(state == 1)
-			{
-				if(flag >= 6)
-				{
-					flag = 0;
-					RTU_Cmd_Pending(RTU_STOP,MC_STOP); 
-					state = 2;
-				}
-			}
-			if(state == 2)
-			{
-				if(flag >= 6)
-				{
-					flag = 0;
-					if(win_str_data.state == FSM_FEED_LIQUOR)
-					win_str_data.add_liquid = (win_str_data.measure_weight - win_str_data.save_weight)*10; //0.01Îª10g
-					if(win_str_data.add_liquid <= 0) win_str_data.add_liquid = 0;
-					state = 3;
-				}
-			}
-			if(state == 3)
-			{
-				flag = 0;
-				RTU_Cmd_Pending(RTU_START,MC_REV); 
-				state = 4;
-			}
-			if(state == 4)
-			{
-				if(flag >= 6)
-				{
-					flag = 0;
-					RTU_Cmd_Pending(RTU_STOP,MC_STOP); 
-					state = 5;
-				}
-			}
-			if(state == 5)
-			{
-				if(flag >= 6)
-				{
-					flag = 0;
-					if(win_str_data.state == FSM_FEED_LIQUOR)
-					win_str_data.add_liquid = (win_str_data.measure_weight - win_str_data.save_weight)*10; //0.01Îª10g
-					if(win_str_data.add_liquid <= 0) win_str_data.add_liquid = 0;
-					state = 0;
-				}
-			}	
 		}
+		/* delay°´ÃëµÝ¼õ£ºFSM_STARTÖÐdelay=40±íÊ¾µÈ´ý40Ãë */
+		if(win_str_data.delay > 0) win_str_data.delay--;
 	}
 	
 	
-	if(win_str_data.delay > 0) win_str_data.delay--;
 }
-void RTU_send_Rece(void)  // 100msÊý¾ÝÖÜÆÚ£¬¿É×ÔÐÐÐÞ¸ÄÖÜÆÚ£¬×î¿ì1ms
+void RTU_send_Rece(void)  // 100msæ•°æ®å‘¨æœŸï¼Œå¯è‡ªè¡Œä¿®æ”¹å‘¨æœŸï¼Œæœ€å¿?ms
 {
 	RTU_Send_Task_Handler();
 }
 
-/*********************×´Ì¬»ú******************************/
-void Run_FSM(void)   //FSM×´Ì¬»ú 
+/*********************çŠ¶æ€æœº******************************/
+void Run_FSM(void)   //FSMçŠ¶æ€æœº 
 {
 	switch(win_str_data.state)
 	{
@@ -138,14 +159,14 @@ void Run_FSM(void)   //FSM×´Ì¬»ú
 			win_str_data.state = FSM_READY;
 			break;
 		
-		case FSM_READY:   //****************×´Ì¬»ú£º×¼±¸×´Ì¬********************************************************	
+		case FSM_READY:   //****************çŠ¶æ€æœºï¼šå‡†å¤‡çŠ¶æ€?*******************************************************	
 				win_str_data.use_cooling_time = win_str_data.set_cooling_time;
 				win_str_data.use_volume = win_str_data.set_volume;
 				win_str_data.use_grind_temp = win_str_data.set_grind_temp;
 				win_str_data.use_grind_speed = win_str_data.set_grind_speed;
 				win_str_data.use_grind_time = win_str_data.set_grind_time;
 		
-				if(win_str_data.start == 1)    //½ÓÊÕµ½Start_win  start=1¿ªÊ¼ÐÅºÅ
+				if(win_str_data.start == 1)    //æŽ¥æ”¶åˆ°Start_win  start=1å¼€å§‹ä¿¡å?
 				{
 					if(win_str_data.medium_flag == 1)
 						win_str_data.state = FSM_START;
@@ -162,11 +183,11 @@ void Run_FSM(void)   //FSM×´Ì¬»ú
 			break;
 		case FSM_START:
 					RTU_Cmd_Pending(RTU_VALVE_ON,1);
-					win_str_data.run_step = 0;    //0:¼ÓÒºµª 1:½µÎÂ  2£ºÑÐÄ¥ 
+					win_str_data.run_step = 0;    //0:åŠ æ¶²æ°?1:é™æ¸©  2ï¼šç ”ç£?
 					win_str_data.delay = 40;
 					win_str_data.state = FSM_WAIT; 
 			break;
-		case FSM_WAIT:  //µÈ´ýÎÂ¶Èµ½5¶ÈÒÔÏÂ
+		case FSM_WAIT:  //ç­‰å¾…æ¸©åº¦åˆ?åº¦ä»¥ä¸?
 					if(win_str_data.delay == 0)
 					{
 						win_str_data.save_weight = win_str_data.measure_weight;
@@ -179,13 +200,13 @@ void Run_FSM(void)   //FSM×´Ì¬»ú
 						win_str_data.state = FSM_STOP;
 					}
 			break;
-		case FSM_FEED_LIQUOR:  //¼ÓÒºµª   //win_str_data.add_liquid mlÊý
+		case FSM_FEED_LIQUOR:  //åŠ æ¶²æ°?  //win_str_data.add_liquid mlæ•?
 		
  		      if(win_str_data.add_liquid >= win_str_data.use_volume || win_str_data.disp_temperature <= (int)win_str_data.use_grind_temp)
 					{
 						RTU_Cmd_Pending(RTU_VALVE_OFF,0);
 						RTU_Cmd_Pending(RTU_FAN_ON,1);
-						win_str_data.run_step = 1;  //0:¼ÓÒºµª 1:½µÎÂ¹ý³Ì  2£ºÑÐÄ¥ 
+						win_str_data.run_step = 1;  //0:åŠ æ¶²æ°?1:é™æ¸©è¿‡ç¨‹  2ï¼šç ”ç£?
 						win_str_data.state = FSM_FREEZE; 
 					}
 					if(win_str_data.start == 0) 
@@ -193,11 +214,11 @@ void Run_FSM(void)   //FSM×´Ì¬»ú
 						win_str_data.state = FSM_STOP;
 					}
 			break;
-		case FSM_FREEZE:  //Àä¶³
+		case FSM_FREEZE:  //å†·å†»
           if(win_str_data.use_cooling_time == 0)
 					{
 						RTU_Cmd_Pending(RTU_START,MC_FWD); 
-						win_str_data.run_step = 2;   //0:¼ÓÒºµª 1:½µÎÂ  2£ºÑÐÄ¥ 
+						win_str_data.run_step = 2;   //0:åŠ æ¶²æ°?1:é™æ¸©  2ï¼šç ”ç£?
 				  	win_str_data.state = FSM_RUN;
 					}
 					if(win_str_data.start == 0) 
@@ -216,13 +237,14 @@ void Run_FSM(void)   //FSM×´Ì¬»ú
 				if(win_str_data.medium_flag == 1) win_change_page(N2_MAIN);	
 				else if(win_str_data.medium_flag == 2) win_change_page(CO2_MAIN);			
 		
-				RTU_Cmd_Pending(RTU_FAN_OFF,0);  //·çÉÈ¹Ø±Õ
-				RTU_Cmd_Pending(RTU_VALVE_OFF,0); //Òºµª·§ÃÅ¹Ø±Õ
-				RTU_Cmd_Pending(RTU_STOP,MC_STOP);  //µç»úÍ£Ö¹
+				RTU_Cmd_Pending(RTU_FAN_OFF,0);  //é£Žæ‰‡å…³é—­
+				RTU_Cmd_Pending(RTU_VALVE_OFF,0); //æ¶²æ°®é˜€é—¨å…³é—?
+				RTU_Cmd_Pending(RTU_STOP,MC_STOP);  //ç”µæœºåœæ­¢
 				win_str_data.start = 0;
 		
-				win_str_data.used_time_l = win_str_data.used_time & 0xffff;  //Save used time
-				win_str_data.used_time_h = (win_str_data.used_time>>16) & 0xffff; 
+				win_str_data.used_time_l = (u16)(win_str_data.used_time & 0xffff);  //Save used time
+				win_str_data.used_time_h = (u16)((win_str_data.used_time>>16) & 0xffff); 
+				win_str_data.disp_time = win_str_data.used_time/3600;
 				norflash_write(RUNTIME_MIN_HADDR,(u8*)&win_str_data.used_time_h,2);
 	
 		
@@ -234,9 +256,9 @@ void Run_FSM(void)   //FSM×´Ì¬»ú
 }
 void HFPeriod_1msTask(void)
 {
-	btn_click_handler();						//°´Å¥µã»÷ÊÂ¼þ´¦Àí	
+	btn_click_handler();						//æŒ‰é’®ç‚¹å‡»äº‹ä»¶å¤„ç†	
 	rtu_response_handler();
-	win_fresh_window();     //Ë¢ÐÂ½çÃæ
+	win_fresh_window();     //åˆ·æ–°ç•Œé¢
 }
 
 
@@ -248,22 +270,22 @@ void Task_Manage_List_Init(void)
 
 	TasksPare[1].Task_Period = RTUPeriod_COUNT; //2ms
 	TasksPare[1].Task_Count = 8;
-	TasksPare[1].Task_Function = RTU_send_Rece; //  Í¨Ñ¶½ÓÊÕºÍ·¢ËÍ;
+	TasksPare[1].Task_Function = RTU_send_Rece; //  é€šè®¯æŽ¥æ”¶å’Œå‘é€?
 
 	TasksPare[2].Task_Period = FSMPeriod_COUNT; //100ms
 	TasksPare[2].Task_Count=80;
-	TasksPare[2].Task_Function = Run_FSM;//  Í¨Ñ¶½ÓÊÕºÍ·¢ËÍ;
+	TasksPare[2].Task_Function = Run_FSM;//  é€šè®¯æŽ¥æ”¶å’Œå‘é€?
 
 	TasksPare[3].Task_Period = TIMERPeriod_COUNT;//500ms
 	TasksPare[3].Task_Count=300;
-	TasksPare[3].Task_Function = Task_Timer_Sec;   // 500msµÄLEDµÄÉÁË¸
+	TasksPare[3].Task_Function = Task_Timer_Sec;   // 500msçš„LEDçš„é—ªçƒ?
 }
 
 void Send_voltage_service(void)
 {
 	u16 vol_temp;
-	vol_temp = win_level_trans_volt(win_str_data.use_grind_speed);   //¶ÁÈ¡¼ÆËãµçÑ¹Öµ
-	if(str_sys.set_vol != vol_temp)	   //¶ÁÈ¡µ½ÏÂÎ»»úµçÑ¹Öµ²»µÈÓÚÉèÖÃµçÑ¹Öµ
+	vol_temp = win_level_trans_volt(win_str_data.use_grind_speed);   //è¯»å–è®¡ç®—ç”µåŽ‹å€?
+	if(str_sys.set_vol != vol_temp)	   //è¯»å–åˆ°ä¸‹ä½æœºç”µåŽ‹å€¼ä¸ç­‰äºŽè®¾ç½®ç”µåŽ‹å€?
 	{
 		str_sys.set_vol = vol_temp;
 		RTU_Cmd_Pending(RTU_SET_VLOTAGE,vol_temp);

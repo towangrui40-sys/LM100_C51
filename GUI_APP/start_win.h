@@ -2,40 +2,30 @@
 #define __START_WIN_H__
 #include "sys.h"
 
-#define PRODUCT_TOTAL 1      //��������
+#define PRODUCT_TOTAL 1
 /*---------------------define arae-------------------------*/
-/********************************************************
-��ַOX2000��ͷ ��ʾ����
-��ַOX2000��ͷ ��ʾ����
-ϵͳ�����ӿڣ�0x0000-0x0FFF �����洢���ռ䣩
-0x1000-0xFFFF �����洢�ռ��û���������ʹ�á�
 
-**********************LOGO*****************************/
 #define ANIMOTION_LOGO_ADDR		    0x2100  
 
-//WORK PAGE VAR
-/*******************��ҳ����ʾ*************************/
 //0x2000~0x201F
-#define ARTNUM_MAIN_COOLING_TIME_ADDR		    	  0x2000  //����ʱ��
-#define ARTNUM_MAIN_COOLING_TIME_HADDR		    	0x2001  //����ʱ��
-#define ARTNUM_MAIN_VOLUME_ADDR		    	        0x2002  //Һ����
-#define ARTNUM_MAIN_TEMP_ADDR		    	          0x2003  //�����¶�
-#define ARTNUM_MAIN_SPEED_ADDR		    	        0x2004  //��ĥ�ٶ�
-#define ARTNUM_MAIN_GRINDING_TIME_ADDR		      0x2005  //��ĥʱ��
-#define ARTNUM_MAIN_GRINDING_TIME_HADDR		    	0x2006  //��ĥʱ��
-#define ARTNUM_MAIN_DISP_TEMP_ADDR		          0x2007  //��ʾ�¶�
-#define ARTNUM_MAIN_WEIGHT_ADDR                 0x2008  //��ʾ������
-#define ARTNUM_MAIN_PROG_NUM_ADDR		    	      0x2009  //�������
+#define ARTNUM_MAIN_COOLING_TIME_ADDR		    0x2000
+#define ARTNUM_MAIN_COOLING_TIME_HADDR		    0x2001
+#define ARTNUM_MAIN_VOLUME_ADDR		    	    0x2002
+#define ARTNUM_MAIN_TEMP_ADDR		    	    0x2003
+#define ARTNUM_MAIN_SPEED_ADDR		    	    0x2004
+#define ARTNUM_MAIN_GRINDING_TIME_ADDR		    0x2005
+#define ARTNUM_MAIN_GRINDING_TIME_HADDR		    0x2006
+#define ARTNUM_MAIN_DISP_TEMP_ADDR		        0x2007
+#define ARTNUM_MAIN_WEIGHT_ADDR                 0x2008
+#define ARTNUM_MAIN_PROG_NUM_ADDR		    	0x2009
 
 #define ARTNUM_WORK_ADD_LIQUID_ADDR		    0x2010
-#define ARTNUM_WORK_TOTAL_TIME_ADDR		    0x2011  //��ʱ��
-#define ARTNUM_WORK_TOTAL_TIME_HADDR		  0x2012
+#define ARTNUM_WORK_TOTAL_TIME_ADDR		    0x2011
+#define ARTNUM_WORK_TOTAL_TIME_HADDR		0x2012
 
 #define ARTNUM_FAC_BOTTOM_TEMP_ADDR		    0x2020
-#define ARTNUM_FAC_SIDE_TEMP_ADDR		      0x2021
+#define ARTNUM_FAC_SIDE_TEMP_ADDR		    0x2021
 
-
-//����ͼ��
 
 #define ICON_DOOR_ADDR  	    0x2501
 #define ICON_RUN_STEP_ADDR  	0x2502
@@ -54,9 +44,9 @@
 #define ICON_INPUT_WORD4_ADDR   0x2518
 #define ICON_INPUT_WORD5_ADDR   0x2519
 
-#define ARTNUM_PASSCODE_ADDR					0x2060  //��ʾ��������
+#define ARTNUM_PASSCODE_ADDR					0x2060
 
-#define ARTNUM_UT_ADDR								0x2072 //service used time	 ������ʱ��
+#define ARTNUM_UT_ADDR							0x2072 //service used time
 
 //string
 #define STRING_PRODUCT_ADDR 0x3000
@@ -68,14 +58,14 @@
 
 
 // each addr include 2 byte
-#define SYS_LOGO_OFFSET					0X00
-#define SYS_LANGUAGE_OFFSET			0X01
-#define SYS_LIGHT_OFFSET				0X02
-#define SYS_BUZZ_OFFSET				  0X03
+#define SYS_LOGO_OFFSET			0X00
+#define SYS_LANGUAGE_OFFSET		0X01
+#define SYS_LIGHT_OFFSET		0X02
+#define SYS_BUZZ_OFFSET			0X03
 #define RUNTIME_MIN_HADDR 	   	0X04
-#define RUNTIME_MIN_LADDR 			0X05
-#define SYS_MEDIUM_OFFSET			  0X06
-#define SYS_LAST_PROG_OFFSET		0X07
+#define RUNTIME_MIN_LADDR 		0X05
+#define SYS_MEDIUM_OFFSET		0X06
+#define SYS_LAST_PROG_OFFSET	0X07
 
 #define PROG1_BASE_NORADDR		0x10
 #define PROG2_BASE_NORADDR		0x20
@@ -108,11 +98,11 @@
 
 
 typedef enum{
-	MENU_PAGE = 0, //�˵�����
-	FAC_PAGE,      //LOGO����
-	INFO_PAGE_LOGO,     //��Ϣ����
-	INFO_PAGE,     //��Ϣ����
-	SET_PAGE,      //���ý���
+	MENU_PAGE = 0,
+	FAC_PAGE,
+	INFO_PAGE_LOGO,
+	INFO_PAGE,
+	SET_PAGE,
 	PASSWORD_PAGE,
 	RESET_PAGE,
 	N2_MAIN,
@@ -160,7 +150,7 @@ typedef struct{
 	u16 alarm;//
 	u16 used_time_h;
 	u16 used_time_l;	
-	u16 medium_flag;    //���ʱ��λ  1:Һ�� 2�ɱ�
+	u16 medium_flag;
 	u16 prog_grp;
 	
 	u16 start;	// 0:stop 1:run:2:run-pause
@@ -188,8 +178,7 @@ typedef struct{
 	u16 input_disp3;
 	u16 input_disp4;
 	u16 input_disp5;
-	u16 set_cooling_time_bit;
-	u16 set_grind_time_bit;
+	u16 time_edit_dec;
 	short set_cooling_time;
 	short set_volume;
 	short set_grind_temp;
@@ -215,7 +204,6 @@ typedef struct{
 }STR_WIN_TypeDef;
 
 
-//START_WIN�ṹ��
 extern STR_WIN_TypeDef xdata win_str_data;
 
 typedef enum

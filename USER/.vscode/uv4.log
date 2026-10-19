@@ -1,8 +1,6 @@
 Build target 'TEMPLATE'
-compiling start_win.c...
-..\GUI_APP\start_win.c(926): warning C280: 'val2': unreferenced local variable
 linking...
-Program Size: data=45.1 xdata=4528 const=838 code=24526
+Program Size: data=45.1 xdata=4526 const=838 code=24150
 creating hex file from "..\OBJ\T5_HMI_V1.0"...
-"..\OBJ\T5_HMI_V1.0" - 0 Error(s), 1 Warning(s).
-Build Time Elapsed:  00:00:04
+"..\OBJ\T5_HMI_V1.0" - 0 Error(s), 0 Warning(s).
+Build Time Elapsed:  00:00:03

@@ -1,4 +1,4 @@
-C51 COMPILER V9.60.7.0   FUNC_HANDLER                                                      10/19/2026 10:15:49 PAGE 1   
+C51 COMPILER V9.60.7.0   FUNC_HANDLER                                                      10/19/2026 10:58:16 PAGE 1   
 
 
 C51 COMPILER V9.60.7.0, COMPILATION OF MODULE FUNC_HANDLER
@@ -62,7 +62,7 @@ line level    source
   51   1      }
   52          static void btn_click_event(STR_BTN_TypeDef *obj)
   53          {
-C51 COMPILER V9.60.7.0   FUNC_HANDLER                                                      10/19/2026 10:15:49 PAGE 2   
+C51 COMPILER V9.60.7.0   FUNC_HANDLER                                                      10/19/2026 10:58:16 PAGE 2   
 
   54   1        u16 val;
   55   1        sys_read_vp(obj->addr,(u8*)&obj->val,1);
@@ -126,7 +126,7 @@ line level    source
  113   2          btn_InitStructure(&btn_str_data[i],i);
  114   2        }
  115   1        //init hold button reg
-C51 COMPILER V9.60.7.0   FUNC_HANDLER                                                      10/19/2026 10:15:49 PAGE 3   
+C51 COMPILER V9.60.7.0   FUNC_HANDLER                                                      10/19/2026 10:58:16 PAGE 3   
 
  116   1        val=1;
  117   1        sys_write_vp(HOLD_ACTIVE_ADDR,(u8*)&val,1);

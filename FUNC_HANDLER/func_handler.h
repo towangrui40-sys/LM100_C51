@@ -6,19 +6,19 @@
 ////////////////////////////////////button paras config///////////////////////////
 //////////////////////////////////////////////////////////////////////////////////
 /*---------------------define arae-------------------------*/
-#define BTN_LANGUAGE_ADDR			0X0FFF   //¶àÓïÑÔ
+#define BTN_LANGUAGE_ADDR			0X0FFF   //å¤šè¯­è¨€
 //main page
 #define BTN_MAIN_PAGE_ADDR	    	0x1100
 
-//paras input //²ÎÊıÉèÖÃ
-#define BTN_PROG_MODE_SET_ADDR		    0X1110		//³ÌĞòÄ£Ê½ÉèÖÃ°´Å¥
+//paras input //å‚æ•°è®¾ç½®
+#define BTN_PROG_MODE_SET_ADDR		    0X1110		//ç¨‹åºæ¨¡å¼è®¾ç½®æŒ‰é’®
 #define BTN_PROG_NUM_SEL_ADDR			0X1112
-#define BTN_PARA_KEYPAD_ADDR			0X1114    //²ÎÊıÉèÖÃ¼üÅÌ
+#define BTN_PARA_KEYPAD_ADDR			0X1114    //å‚æ•°è®¾ç½®é”®ç›˜
 
-//system settings  ÉèÖÃ½çÃæ
+//system settings  è®¾ç½®ç•Œé¢
 #define BTN_SET_LIGHT_ADDR				0x1200 
 #define BTN_SET_BUZZ_ADDR				0x1201 
-#define BTN_PASS_KEYPAD_ADDR			0X1202   //ÃÜÂë¼üÅÌ		
+#define BTN_PASS_KEYPAD_ADDR			0X1202   //å¯†ç é”®ç›˜		
 
 //factory mode
 #define BTN_FAC_SET_ADDR		0X1300
@@ -30,11 +30,11 @@
 #define HOLD_ACTIVE_ADDR		0x1150	//hold button active register default 1
 #define HOLD_PASSIVE_ADDR		0x1152	//hold button passive register default 0
 
-#define BTN_EVENT_NUM 		 12    //°´Å¥×ÜÊı
+#define BTN_EVENT_NUM 		 12    //æŒ‰é’®æ€»æ•°
 
 
 
-#define BTN_SCAN_PERIOD		30   //°´Å¥µã»÷ÊÂ¼şµÄÉ¨ÃèÖÜÆÚ,µ¥Î»ms
+#define BTN_SCAN_PERIOD		30   //æŒ‰é’®ç‚¹å‡»äº‹ä»¶çš„æ‰«æå‘¨æœŸ,å•ä½ms
 /*-------------------------------------------------------*/
 //////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////
@@ -42,7 +42,7 @@
 
 
 
-//Ã¶¾Ù  
+//æšä¸¾  
 //#define BTN_TYPE_CLICK  0
 //#define BTN_TYPE_HOLD_RES  1
 //#define BTN_TYPE_HOLD_TIME  2

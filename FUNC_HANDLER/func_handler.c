@@ -3,8 +3,8 @@
 //////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////button paras config///////////////////////////
 //////////////////////////////////////////////////////////////////////////////////
-/*********************¶şÎ¬Êı×é********************/
-code const u16 btn_click_pararlist[BTN_EVENT_NUM][2]={   //BTN_EVENT_NUM   °´Å¥×ÜÊı °´ÕÕÊµ¼Ê¸ü¸Ä
+/*********************äºŒç»´æ•°ç»„********************/
+code const u16 btn_click_pararlist[BTN_EVENT_NUM][2]={   //BTN_EVENT_NUM   æŒ‰é’®æ€»æ•° æŒ‰ç…§å®é™…æ›´æ”¹
 {BTN_MAIN_PAGE_ADDR,			    BTN_TYPE_CLICK},//paras input 
 {BTN_PASS_KEYPAD_ADDR,				BTN_TYPE_CLICK},
 {BTN_FAC_SET_ADDR,	        	BTN_TYPE_CLICK},
@@ -18,7 +18,7 @@ code const u16 btn_click_pararlist[BTN_EVENT_NUM][2]={   //BTN_EVENT_NUM   °´Å¥×
 //////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////
 
-bit is_btn_scan = 0;//ÊÇ·ñÒª½øĞĞ°´Å¥µã»÷É¨Ãè
+bit is_btn_scan = 0;//æ˜¯å¦è¦è¿›è¡ŒæŒ‰é’®ç‚¹å‡»æ‰«æ
 
 xdata STR_BTN_TypeDef btn_str_data[BTN_EVENT_NUM];
 
@@ -56,12 +56,12 @@ static void btn_click_event(STR_BTN_TypeDef *obj)
 	switch(obj->type)
 	{
 		case BTN_TYPE_CLICK:
-			//¼ì²éÊÇ·ñÓĞ°´Å¥°´ÏÂ
+			//æ£€æŸ¥æ˜¯å¦æœ‰æŒ‰é’®æŒ‰ä¸‹
 			if(obj->val !=0)
 			{
-				//°´Å¥µã»÷ÊÂ¼ş´¦Àí,´«µİ¸øÏàÓ¦µÄ½çÃæ	
+				//æŒ‰é’®ç‚¹å‡»äº‹ä»¶å¤„ç†,ä¼ é€’ç»™ç›¸åº”çš„ç•Œé¢	
 				obj->func_callback(obj->addr,obj->val);			
-				//Çå³ı°´¼üÖµ
+				//æ¸…é™¤æŒ‰é”®å€¼
 				obj->val = 0;
 				sys_write_vp(obj->addr,(u8*)&obj->val,1);	
 			}
@@ -87,7 +87,7 @@ static void btn_click_event(STR_BTN_TypeDef *obj)
 				if(obj->timer ==20)// 600ms hold event,popup shotkey select menu
 				{
 					obj->func_hold_callback(obj->addr,obj->val);
-					//Çå³ı°´¼üÖµ
+					//æ¸…é™¤æŒ‰é”®å€¼
 					obj->val = 0;
 					sys_write_vp(obj->addr,(u8*)&obj->val,1);		
 				}
@@ -119,7 +119,7 @@ void btn_init(void)
 	sys_write_vp(HOLD_PASSIVE_ADDR,(u8*)&val,1);
 }
 
-//ÓÃÓÚ²úÉú°´Å¥µã»÷É¨ÃèĞÅºÅ,·ÅÔÚ1msµÄ¶¨Ê±Æ÷ÖĞµ÷ÓÃ¼´¿É
+//ç”¨äºäº§ç”ŸæŒ‰é’®ç‚¹å‡»æ‰«æä¿¡å·,æ”¾åœ¨1msçš„å®šæ—¶å™¨ä¸­è°ƒç”¨å³å¯
 void btn_click_tick()
 {
 	static idata u8 tick = 0;
@@ -127,19 +127,19 @@ void btn_click_tick()
 	if(tick==BTN_SCAN_PERIOD)
 	{
 		tick = 0;
-		is_btn_scan = 1;//²úÉúÒ»¸ö°´Å¥µã»÷É¨ÃèĞÅºÅ
+		is_btn_scan = 1;//äº§ç”Ÿä¸€ä¸ªæŒ‰é’®ç‚¹å‡»æ‰«æä¿¡å·
 	}
 }
 
-//°´Å¥µã»÷ÊÂ¼şÉ¨Ãè²¢´¦Àí
+//æŒ‰é’®ç‚¹å‡»äº‹ä»¶æ‰«æå¹¶å¤„ç†
 void btn_click_handler(void)
 {
 	u16 i;
 
-	if(is_btn_scan==0)//ÊÇ·ñÓĞÉ¨ÃèĞÅºÅ,Ã»ÓĞµÄ»°¾ÍÉ¶Ò²²»×ö,Ö±½Ó·µ»Ø
+	if(is_btn_scan==0)//æ˜¯å¦æœ‰æ‰«æä¿¡å·,æ²¡æœ‰çš„è¯å°±å•¥ä¹Ÿä¸åš,ç›´æ¥è¿”å›
 		return;
 	
-	is_btn_scan = 0;//Çå³ı
+	is_btn_scan = 0;//æ¸…é™¤
 
 	for(i=0;i<BTN_EVENT_NUM;i++)
 	{

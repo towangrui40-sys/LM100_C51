@@ -42,7 +42,7 @@ void main(void)
 	rtu_data_init();
 	btn_init();        
 	T5L_HMIslvInit();
-  EA=1;
+    EA=1;
 	Task_Manage_List_Init( );
 	win_init();
 	while(1)
