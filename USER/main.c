@@ -3,10 +3,10 @@
 
 
 /**************************************************
-´¥ÃşµØÖ·ÉèÖÃÔÚ#include "func_handler.h"
-ÏÔÊ¾±äÁ¿µØÖ·ÔÚ#include "start_win.h"
+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½#include "func_handler.h"
+ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½#include "start_win.h"
 
-//µã»÷°´¼ü´¦Àí»Øµ÷º¯Êı
+//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Øµï¿½ï¿½ï¿½ï¿½ï¿½
 void btn_click_callback(u16 addr,u16 val)
 
 **************************************************/
@@ -37,18 +37,18 @@ void Init_Rtu_RegHoldingBuf(SysDataDef* dat)
 
 void main(void)
 { 
-	sys_init();//ÏµÍ³³õÊ¼»¯
+	sys_init();
 	Init_Rtu_RegHoldingBuf(&str_sys);
 	rtu_data_init();
 	btn_init();        
-	T5L_HMIslvInit(); //³õÊ¼»¯Í¨Ñ¶²ÎÊı
+	T5L_HMIslvInit();
   EA=1;
-	Task_Manage_List_Init( );  // ÊÂ¼şÈÎÎñº¯Êı³õÊ¼»¯
+	Task_Manage_List_Init( );
 	win_init();
 	while(1)
 	{
 		Execute_Task_List_RUN();
-		T5L_HMIslvSub(); //¹¦ÄÜ£ºÔÚÏß¸üĞÂ´¥ÃşÆÁ³ÌĞò
+		T5L_HMIslvSub();
 	}
 }
 

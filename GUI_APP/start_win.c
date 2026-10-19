@@ -9,9 +9,6 @@
 code const char Software_version[11]={"V4.00"};
 code const char modle_version[11]={"--------"};
 Product_TypeDef product_data[PRODUCT_TOTAL]={ 
-// 														1: MM			1: SS
-//														2:circle	2: MM
-// 														3: MM:SS
 //id, product name,		  level				    time	         temp	           ml	            voltage		
 { 0,	 "LM100",		   500,3600,100,		1,599,10,    -150,20,1,      0,1200,10,       500,3600, },
 };																					//350		
@@ -36,8 +33,8 @@ static void win_load_setpara(void);
 void win_save_prog_paras(u16 offaddr,u8 *var_addr,u16 len);
 void win_load_prog_paras(u16 offaddr,u8 *var_addr,u16 len);
 void win_fresh_model_icon(void);
-
-
+void disp_input_icon(u16 btn_val);
+void disp_input_icon_clean(void);
 extern u16 const page_reg_ch[18]={						//中文界面
 	{1},//MENU_PAGE
 	{3},//FAC_PAGE
@@ -383,6 +380,9 @@ static void win_prog_num_sel_btn_click_handler(u16 btn_val)
 			break;
 		default:break;
 	}
+
+	disp_input_icon_clean();
+
 	sys_write_vp(ARTNUM_MAIN_PROG_NUM_ADDR,(u8*)&win_str_data.prog_grp,1);	
 	norflash_write(SYS_LAST_PROG_OFFSET,(u8 *)&win_str_data.prog_grp,2);	
 	
@@ -394,9 +394,9 @@ static void win_prog_num_sel_btn_click_handler(u16 btn_val)
 	win_disp_grind_time(win_str_data.set_grind_time);
 }
 
-#define  BTN_VAL_NO	   			0X1C00
-#define  BTN_VAL_YES	   	  0X1400 //弹窗√
-#define  BTN_VAL_RETURN			0X1000 //返回
+#define  BTN_VAL_NO	   		0X1C00
+#define  BTN_VAL_YES	   	0X1400 //弹窗√
+#define  BTN_VAL_RETURN		0X1000 //返回
 #define  BTN_VAL_OVERSET  	0X0800 //覆盖程序
 #define  BTN_VAL_TOSET	    0X0400 //主页面选择框'
 
@@ -426,22 +426,31 @@ void disp_input_icon(u16 btn_val)
 		if(btn_val == BTN_VAL_SEL_GRINDING_TIME)  win_str_data.input_disp5 = win_str_data.input_disp5 + 1;
 		sys_write_vp(ICON_INPUT_WORD1_ADDR,(u8 *)&win_str_data.input_disp1,5);
 	}
-//	else if(win_str_data.language == 2)  //RUS
-//	{
-//		if(btn_val == BTN_VAL_SEL_LEVEL) win_str_data.input_disp1 = win_str_data.input_disp1 + 2;
-//		if(btn_val == BTN_VAL_SEL_RUN_TIME) win_str_data.input_disp2 = win_str_data.input_disp2 + 2;
-//		if(btn_val == BTN_VAL_SEL_PAUSE_TIME) win_str_data.input_disp3 = win_str_data.input_disp3 + 2;
-//		if(btn_val == BTN_VAL_SEL_CYCLE) win_str_data.input_disp4 = win_str_data.input_disp4 + 2;
-//		sys_write_vp(ICON_INPUT1_WORD_ADDR,(u8 *)&win_str_data.input_disp1,4);
-//	}
-//	else  //JAPAN
-//	{
-//		if(btn_val == BTN_VAL_SEL_LEVEL) win_str_data.input_disp1 = win_str_data.input_disp1 + 3;
-//		if(btn_val == BTN_VAL_SEL_RUN_TIME) win_str_data.input_disp2 = win_str_data.input_disp2 + 3;
-//		if(btn_val == BTN_VAL_SEL_PAUSE_TIME) win_str_data.input_disp3 = win_str_data.input_disp3 + 3;
-//		if(btn_val == BTN_VAL_SEL_CYCLE) win_str_data.input_disp4 = win_str_data.input_disp4 + 3;
-//		sys_write_vp(ICON_INPUT1_WORD_ADDR,(u8 *)&win_str_data.input_disp1,4);
-//	}
+	else if(win_str_data.language == 2)  //RUS
+	{
+		if(btn_val == BTN_VAL_SEL_COOLING_TIME) 	win_str_data.input_disp1 = win_str_data.input_disp1 + 2;
+		if(btn_val == BTN_VAL_SEL_VOLUME) 		    win_str_data.input_disp2 = win_str_data.input_disp2 + 2;
+		if(btn_val == BTN_VAL_SEL_GRINDING_TEMP) 	win_str_data.input_disp3 = win_str_data.input_disp3 + 2;
+		if(btn_val == BTN_VAL_SEL_GRINDING_SPEED)	win_str_data.input_disp4 = win_str_data.input_disp4 + 2;
+		if(btn_val == BTN_VAL_SEL_GRINDING_TIME)  win_str_data.input_disp5 = win_str_data.input_disp5 + 2;
+		sys_write_vp(ICON_INPUT_WORD1_ADDR,(u8 *)&win_str_data.input_disp1,5);
+	}
+	else  //JAPAN
+	{
+		if(btn_val == BTN_VAL_SEL_COOLING_TIME) 	win_str_data.input_disp1 = win_str_data.input_disp1 + 3;
+		if(btn_val == BTN_VAL_SEL_VOLUME) 		    win_str_data.input_disp2 = win_str_data.input_disp2 + 3;
+		if(btn_val == BTN_VAL_SEL_GRINDING_TEMP) 	win_str_data.input_disp3 = win_str_data.input_disp3 + 3;
+		if(btn_val == BTN_VAL_SEL_GRINDING_SPEED)	win_str_data.input_disp4 = win_str_data.input_disp4 + 3;
+		if(btn_val == BTN_VAL_SEL_GRINDING_TIME)  win_str_data.input_disp5 = win_str_data.input_disp5 + 3;
+		sys_write_vp(ICON_INPUT_WORD1_ADDR,(u8 *)&win_str_data.input_disp1,4);
+	}
+}
+
+void disp_input_icon_clean(void)
+{
+	memset(&win_str_data.input_disp1, 0, 5 * sizeof(win_str_data.input_disp1));
+	sys_write_vp(ICON_INPUT_DISP1_ADDR,(u8 *)&win_str_data.input_disp1,5);
+	sys_write_vp(ICON_INPUT_WORD1_ADDR,(u8 *)&win_str_data.input_disp1,5);
 }
 /********************************************************
 函数名称：win_prog_para_btn_hold_handler
@@ -529,6 +538,8 @@ static void win_prog_para_btn_hold_handler(u16 btn_val)
 				else if(win_str_data.medium_flag == 2) win_change_page(CO2_PROG);	
 			break;
 		case BTN_VAL_RETURN: //Reset the key value when returning and jump page and clean paras_sel
+			    disp_input_icon_clean();
+
 				memset(&win_str_data.input_disp1, 0, 5 * sizeof(win_str_data.input_disp1));
 				sys_write_vp(ICON_INPUT_DISP1_ADDR,(u8 *)&win_str_data.input_disp1,4);
 				sys_write_vp(ICON_INPUT_WORD1_ADDR,(u8 *)&win_str_data.input_disp1,4);
@@ -538,12 +549,13 @@ static void win_prog_para_btn_hold_handler(u16 btn_val)
 				else if(win_str_data.medium_flag == 2) win_change_page(CO2_MAIN);	
 			break;
 		case BTN_VAL_OVERSET:  //Jump to pop-up page
+				disp_input_icon_clean();
+
 				memset(&win_str_data.input_disp1, 0, 5 * sizeof(win_str_data.input_disp1));
 				sys_write_vp(ICON_INPUT_DISP1_ADDR,(u8 *)&win_str_data.input_disp1,4);
 				sys_write_vp(ICON_INPUT_WORD1_ADDR,(u8 *)&win_str_data.input_disp1,4);
 				if(win_str_data.medium_flag == 1) win_change_page(N2_PROG_CONFIRM);	
 				else if(win_str_data.medium_flag == 2) win_change_page(CO2_PROG_CONFIRM);	
-
 			break;
 		case BTN_VAL_YES:  	 //pop-up page YES   Put Set -> Prog and save flash
 				win_save_prog_paras(PROG_COOLING_TIME_OFFSET,(u8*)&win_str_data.set_cooling_time,6);	//write norflash
@@ -569,12 +581,12 @@ static void win_para_keypad_btn_click_handler(u16 btn_val)
 {
 	#define  BTN_VAL_1		0x01
 	#define  BTN_VAL_2		0x02
-	#define  BTN_VAL_3	  0x03
-	#define  BTN_VAL_4    0x04
-	#define  BTN_VAL_5    0x05
+	#define  BTN_VAL_3	    0x03
+	#define  BTN_VAL_4      0x04
+	#define  BTN_VAL_5      0x05
 	#define  BTN_VAL_6		0x06
 	#define  BTN_VAL_7		0x07
-	#define  BTN_VAL_8    0x08
+	#define  BTN_VAL_8      0x08
 	#define  BTN_VAL_9		0x09
 	#define  BTN_VAL_0		0x0A	
 	#define  BTN_VAL_cancel	   0X0B

@@ -8,16 +8,16 @@
 /*---------------------define arae-------------------------*/
 #define BTN_LANGUAGE_ADDR			0X0FFF   //多语言
 //main page
-#define BTN_MAIN_PAGE_ADDR		0x1100
+#define BTN_MAIN_PAGE_ADDR	    	0x1100
 
 //paras input //参数设置
-#define BTN_PROG_MODE_SET_ADDR		0X1110		//程序模式设置按钮
+#define BTN_PROG_MODE_SET_ADDR		    0X1110		//程序模式设置按钮
 #define BTN_PROG_NUM_SEL_ADDR			0X1112
 #define BTN_PARA_KEYPAD_ADDR			0X1114    //参数设置键盘
 
 //system settings  设置界面
 #define BTN_SET_LIGHT_ADDR				0x1200 
-#define BTN_SET_BUZZ_ADDR					0x1201 
+#define BTN_SET_BUZZ_ADDR				0x1201 
 #define BTN_PASS_KEYPAD_ADDR			0X1202   //密码键盘		
 
 //factory mode

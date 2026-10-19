@@ -1,4 +1,4 @@
-C51 COMPILER V9.60.7.0   MAIN                                                              03/20/2026 14:03:35 PAGE 1   
+C51 COMPILER V9.60.7.0   MAIN                                                              10/19/2026 10:15:42 PAGE 1   
 
 
 C51 COMPILER V9.60.7.0, COMPILATION OF MODULE MAIN
@@ -14,10 +14,10 @@ line level    source
    3          
    4          
    5          /**************************************************
-   6          ´¥ÃþµØÖ·ÉèÖÃÔÚ#include "func_handler.h"
-   7          ÏÔÊ¾±äÁ¿µØÖ·ÔÚ#include "start_win.h"
+   6          ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½#include "func_handler.h"
+   7          ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½#include "start_win.h"
    8          
-   9          //µã»÷°´¼ü´¦Àí»Øµ÷º¯Êý
+   9          //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Øµï¿½ï¿½ï¿½ï¿½ï¿½
   10          void btn_click_callback(u16 addr,u16 val)
   11          
   12          **************************************************/
@@ -48,21 +48,21 @@ line level    source
   37          
   38          void main(void)
   39          { 
-  40   1        sys_init();//ÏµÍ³³õÊ¼»¯
+  40   1        sys_init();
   41   1        Init_Rtu_RegHoldingBuf(&str_sys);
   42   1        rtu_data_init();
   43   1        btn_init();        
-  44   1        T5L_HMIslvInit(); //³õÊ¼»¯Í¨Ñ¶²ÎÊý
+  44   1        T5L_HMIslvInit();
   45   1        EA=1;
-  46   1        Task_Manage_List_Init( );  // ÊÂ¼þÈÎÎñº¯Êý³õÊ¼»¯
+  46   1        Task_Manage_List_Init( );
   47   1        win_init();
   48   1        while(1)
   49   1        {
   50   2          Execute_Task_List_RUN();
-  51   2          T5L_HMIslvSub(); //¹¦ÄÜ£ºÔÚÏß¸üÐÂ´¥ÃþÆÁ³ÌÐò
+  51   2          T5L_HMIslvSub();
   52   2        }
   53   1      }
-C51 COMPILER V9.60.7.0   MAIN                                                              03/20/2026 14:03:35 PAGE 2   
+C51 COMPILER V9.60.7.0   MAIN                                                              10/19/2026 10:15:42 PAGE 2   
 
   54          
   55          

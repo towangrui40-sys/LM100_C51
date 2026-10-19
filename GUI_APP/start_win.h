@@ -2,40 +2,40 @@
 #define __START_WIN_H__
 #include "sys.h"
 
-#define PRODUCT_TOTAL 1      //»úÐÍÊýÁ¿
+#define PRODUCT_TOTAL 1      //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 /*---------------------define arae-------------------------*/
 /********************************************************
-µØÖ·OX2000¿ªÍ· ÏÔÊ¾±äÁ¿
-µØÖ·OX2000¿ªÍ· ÏÔÊ¾±äÁ¿
-ÏµÍ³±äÁ¿½Ó¿Ú£¨0x0000-0x0FFF ±äÁ¿´æ´¢Æ÷¿Õ¼ä£©
-0x1000-0xFFFF ±äÁ¿´æ´¢¿Õ¼äÓÃ»§¿ÉÒÔÈÎÒâÊ¹ÓÃ¡£
+ï¿½ï¿½Ö·OX2000ï¿½ï¿½Í· ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½
+ï¿½ï¿½Ö·OX2000ï¿½ï¿½Í· ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½
+ÏµÍ³ï¿½ï¿½ï¿½ï¿½ï¿½Ó¿Ú£ï¿½0x0000-0x0FFF ï¿½ï¿½ï¿½ï¿½ï¿½æ´¢ï¿½ï¿½ï¿½Õ¼ä£©
+0x1000-0xFFFF ï¿½ï¿½ï¿½ï¿½ï¿½æ´¢ï¿½Õ¼ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¹ï¿½Ã¡ï¿½
 
 **********************LOGO*****************************/
 #define ANIMOTION_LOGO_ADDR		    0x2100  
 
 //WORK PAGE VAR
-/*******************Ö÷Ò³ÃæÏÔÊ¾*************************/
+/*******************ï¿½ï¿½Ò³ï¿½ï¿½ï¿½ï¿½Ê¾*************************/
 //0x2000~0x201F
-#define ARTNUM_MAIN_COOLING_TIME_ADDR		    	  0x2000  //½µÎÂÊ±¼ä
-#define ARTNUM_MAIN_COOLING_TIME_HADDR		    	0x2001  //½µÎÂÊ±¼ä
-#define ARTNUM_MAIN_VOLUME_ADDR		    	        0x2002  //ÒºµªÁ¿
-#define ARTNUM_MAIN_TEMP_ADDR		    	          0x2003  //ÉèÖÃÎÂ¶È
-#define ARTNUM_MAIN_SPEED_ADDR		    	        0x2004  //ÑÐÄ¥ËÙ¶È
-#define ARTNUM_MAIN_GRINDING_TIME_ADDR		      0x2005  //ÑÐÄ¥Ê±¼ä
-#define ARTNUM_MAIN_GRINDING_TIME_HADDR		    	0x2006  //ÑÐÄ¥Ê±¼ä
-#define ARTNUM_MAIN_DISP_TEMP_ADDR		          0x2007  //ÏÔÊ¾ÎÂ¶È
-#define ARTNUM_MAIN_WEIGHT_ADDR                 0x2008  //ÏÔÊ¾×ÜÖØÁ¿
-#define ARTNUM_MAIN_PROG_NUM_ADDR		    	      0x2009  //³ÌÐòÐòºÅ
+#define ARTNUM_MAIN_COOLING_TIME_ADDR		    	  0x2000  //ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
+#define ARTNUM_MAIN_COOLING_TIME_HADDR		    	0x2001  //ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
+#define ARTNUM_MAIN_VOLUME_ADDR		    	        0x2002  //Òºï¿½ï¿½ï¿½ï¿½
+#define ARTNUM_MAIN_TEMP_ADDR		    	          0x2003  //ï¿½ï¿½ï¿½ï¿½ï¿½Â¶ï¿½
+#define ARTNUM_MAIN_SPEED_ADDR		    	        0x2004  //ï¿½ï¿½Ä¥ï¿½Ù¶ï¿½
+#define ARTNUM_MAIN_GRINDING_TIME_ADDR		      0x2005  //ï¿½ï¿½Ä¥Ê±ï¿½ï¿½
+#define ARTNUM_MAIN_GRINDING_TIME_HADDR		    	0x2006  //ï¿½ï¿½Ä¥Ê±ï¿½ï¿½
+#define ARTNUM_MAIN_DISP_TEMP_ADDR		          0x2007  //ï¿½ï¿½Ê¾ï¿½Â¶ï¿½
+#define ARTNUM_MAIN_WEIGHT_ADDR                 0x2008  //ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+#define ARTNUM_MAIN_PROG_NUM_ADDR		    	      0x2009  //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
 #define ARTNUM_WORK_ADD_LIQUID_ADDR		    0x2010
-#define ARTNUM_WORK_TOTAL_TIME_ADDR		    0x2011  //×ÜÊ±¼ä
+#define ARTNUM_WORK_TOTAL_TIME_ADDR		    0x2011  //ï¿½ï¿½Ê±ï¿½ï¿½
 #define ARTNUM_WORK_TOTAL_TIME_HADDR		  0x2012
 
 #define ARTNUM_FAC_BOTTOM_TEMP_ADDR		    0x2020
 #define ARTNUM_FAC_SIDE_TEMP_ADDR		      0x2021
 
 
-//¹¦ÄÜÍ¼±ê
+//ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ï¿½
 
 #define ICON_DOOR_ADDR  	    0x2501
 #define ICON_RUN_STEP_ADDR  	0x2502
@@ -54,9 +54,9 @@
 #define ICON_INPUT_WORD4_ADDR   0x2518
 #define ICON_INPUT_WORD5_ADDR   0x2519
 
-#define ARTNUM_PASSCODE_ADDR					0x2060  //ÏÔÊ¾ÊäÈëÃÜÂë
+#define ARTNUM_PASSCODE_ADDR					0x2060  //ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
-#define ARTNUM_UT_ADDR								0x2072 //service used time	 ×ÜÔËÐÐÊ±¼ä
+#define ARTNUM_UT_ADDR								0x2072 //service used time	 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
 
 //string
 #define STRING_PRODUCT_ADDR 0x3000
@@ -108,11 +108,11 @@
 
 
 typedef enum{
-	MENU_PAGE = 0, //²Ëµ¥½çÃæ
-	FAC_PAGE,      //LOGO½çÃæ
-	INFO_PAGE_LOGO,     //ÐÅÏ¢½çÃæ
-	INFO_PAGE,     //ÐÅÏ¢½çÃæ
-	SET_PAGE,      //ÉèÖÃ½çÃæ
+	MENU_PAGE = 0, //ï¿½Ëµï¿½ï¿½ï¿½ï¿½ï¿½
+	FAC_PAGE,      //LOGOï¿½ï¿½ï¿½ï¿½
+	INFO_PAGE_LOGO,     //ï¿½ï¿½Ï¢ï¿½ï¿½ï¿½ï¿½
+	INFO_PAGE,     //ï¿½ï¿½Ï¢ï¿½ï¿½ï¿½ï¿½
+	SET_PAGE,      //ï¿½ï¿½ï¿½Ã½ï¿½ï¿½ï¿½
 	PASSWORD_PAGE,
 	RESET_PAGE,
 	N2_MAIN,
@@ -134,7 +134,7 @@ typedef enum{
 typedef struct{
 	short min;	//para min value
 	short max;	//para max value
-	short unit;	//para unit²½½ø
+	short unit;	//para unit
 }PARA_RangeDef;
 
 typedef struct{
@@ -160,7 +160,7 @@ typedef struct{
 	u16 alarm;//
 	u16 used_time_h;
 	u16 used_time_l;	
-	u16 medium_flag;    //½éÖÊ±ê¼ÇÎ»  1:Òºµª 2¸É±ù
+	u16 medium_flag;    //ï¿½ï¿½ï¿½Ê±ï¿½ï¿½Î»  1:Òºï¿½ï¿½ 2ï¿½É±ï¿½
 	u16 prog_grp;
 	
 	u16 start;	// 0:stop 1:run:2:run-pause
@@ -175,12 +175,12 @@ typedef struct{
 	u16 passcode;
 	
 	u16 state;
-  u16 door_state;
+    u16 door_state;
 	u16 total_time;
 	u16 run_step;
 	
-	u32 used_time;     //¼Ç×ÜÊ±¼ä ÃëÊý
-	u16 disp_time;     ///ÏÔÊ¾Ê±¼ä ×ÜÐ¡Ê±Êý
+	u32 used_time;
+	u16 disp_time;
 	u16 delay;
 	
 	u16 input_disp1;
@@ -190,24 +190,24 @@ typedef struct{
 	u16 input_disp5;
 	u16 set_cooling_time_bit;
 	u16 set_grind_time_bit;
-	short set_cooling_time;  		  //Àä¶³Ê±¼ä
-	short set_volume; 			      //ÉèÖÃÌå»ý
-	short set_grind_temp;         //ÉèÖÃÎÂ¶È
-	short set_grind_speed;  		  //ÉèÖÃ×ªËÙ
-	short set_grind_time;         //ÑÐÄ¥Ê±¼ä
+	short set_cooling_time;
+	short set_volume;
+	short set_grind_temp;
+	short set_grind_speed;
+	short set_grind_time;
 
-	short use_cooling_time;  		  //Àä¶³Ê±¼ä
-	short use_volume; 			      //ÉèÖÃÌå»ý
-	short use_grind_temp;         //ÉèÖÃÎÂ¶È
-	short use_grind_speed;  		  //ÉèÖÃ×ªËÙ
-	short use_grind_time;         //ÑÐÄ¥Ê±¼ä
+	short use_cooling_time;
+	short use_volume;
+	short use_grind_temp;
+	short use_grind_speed;
+	short use_grind_time;
 	
 	short side_temp;
 	short bottom_temp;
-	short disp_temperature;    //²âÁ¿ÎÂ¶È
-	short measure_weight;      //²âÁ¿ÖØÁ¿
+	short disp_temperature;
+	short measure_weight;
 
-  short add_liquid;  //¼ÓÈëµÄÒºµªÁ¿
+ 	short add_liquid;
 	short save_weight;
 		
 	
@@ -215,7 +215,7 @@ typedef struct{
 }STR_WIN_TypeDef;
 
 
-//START_WIN½á¹¹Ìå
+//START_WINï¿½á¹¹ï¿½ï¿½
 extern STR_WIN_TypeDef xdata win_str_data;
 
 typedef enum
