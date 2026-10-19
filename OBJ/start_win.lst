@@ -1,0 +1,1135 @@
+C51 COMPILER V9.60.7.0   START_WIN                                                         03/20/2026 14:51:31 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE START_WIN
+OBJECT MODULE PLACED IN ..\OBJ\start_win.obj
+COMPILER INVOKED BY: D:\Keil_v5\C51\BIN\C51.EXE ..\GUI_APP\start_win.c LARGE OMF2 OPTIMIZE(3,SIZE) BROWSE INCDIR(..\USER
+                    -;..\FUNC_HANDLER;..\GUI_APP;..\HANDWARE\NOR_FLASH;..\HANDWARE\USART;..\T5LDriver) DEBUG PRINT(..\OBJ\start_win.lst) TABS
+                    -(2) OBJECT(..\OBJ\start_win.obj)
+
+line level    source
+
+   1          #include <stdio.h>
+   2          #include <string.h>
+   3          #include "func_handler.h"
+   4          #include "nor_flash.h"
+   5          #include "start_win.h"
+   6          #include "motor_cmd.h"
+   7          #include "main.h"
+   8          
+   9          code const char Software_version[11]={"V4.00"};
+  10          code const char modle_version[11]={"--------"};
+  11          Product_TypeDef product_data[PRODUCT_TOTAL]={ 
+  12          //                            1: MM     1: SS
+  13          //                            2:circle  2: MM
+  14          //                            3: MM:SS
+  15          //id, product name,     level           time           temp            ml             voltage   
+  16          { 0,   "LM100",      500,3600,100,    1,599,10,    -150,20,1,      0,1200,10,       500,3600, },
+  17          };                                          //350   
+  18          
+  19          STR_WIN_TypeDef xdata win_str_data;
+  20          
+  21          //man page button handler API
+  22          static void win_main_btn_click_handler(u16 btn_val);
+  23          static void win_para_keypad_btn_click_handler(u16 btn_val);
+  24          static void win_pass_keypad_btn_click_handler(u16 btn_val);
+  25          static void win_factory_keypad_btn_click_handler(u16 btn_val);
+  26          static void win_fac_set_btn_click_handler(u16 btn_val);
+  27          static void win_prog_num_sel_btn_click_handler(u16 btn_val);
+  28          static void win_prog_para_btn_hold_handler(u16 btn_val);
+  29          static void win_light_set_btn_hold_handler(u16 btn_val);    
+  30          static void win_language_set_btn_hold_handler(u16 btn_val);
+  31          static void win_buzz_set_btn_hold_handler(u16 btn_val);
+  32          //function
+  33          static void win_calc_function(void);
+  34          static void win_load_setpara(void);
+  35          
+  36          void win_save_prog_paras(u16 offaddr,u8 *var_addr,u16 len);
+  37          void win_load_prog_paras(u16 offaddr,u8 *var_addr,u16 len);
+  38          void win_fresh_model_icon(void);
+  39          
+  40          
+  41          extern u16 const page_reg_ch[18]={            //中文界面
+  42            {1},//MENU_PAGE
+  43            {3},//FAC_PAGE
+  44            {4},//INFO_PAGE_LOGO
+  45            {5},//INFO_PAGE
+  46            {6},//SET_PAGE
+  47            {8},//PASSWORD_PAGE
+  48            {9},//RESET_PAGE
+  49            {11},//N2_MAIN
+  50            {12},//N2_MAIN_CONFIRM
+  51            {13},//N2_RUN
+  52            {14},//CO2_MAIN
+  53            {15},//CO2_MAIN_CONFIRM
+C51 COMPILER V9.60.7.0   START_WIN                                                         03/20/2026 14:51:31 PAGE 2   
+
+  54            {16},//CO2_RUN
+  55            {18},//N2_PROG
+  56            {19},//N2_PROG_CONFIRM
+  57            {20},//CO2_PROG
+  58            {21},//CO2_PROG_CONFIRM
+  59            };
+  60            
+  61          //点击按键处理回调函数
+  62          void btn_click_callback(u16 addr,u16 val)  //处理后清零
+  63          {
+  64   1        switch(addr)
+  65   1        {
+  66   2          case BTN_MAIN_PAGE_ADDR:        //Main page button   0x1100 
+  67   2              win_main_btn_click_handler(val);
+  68   2            break;
+  69   2          case BTN_PROG_NUM_SEL_ADDR:         //0x1110
+  70   2              win_prog_num_sel_btn_click_handler(val);
+  71   2            break;
+  72   2          case BTN_PARA_KEYPAD_ADDR://0x1114
+  73   2              win_para_keypad_btn_click_handler(val);
+  74   2            break;    
+  75   2          case BTN_PASS_KEYPAD_ADDR:      //0x1202
+  76   2              win_pass_keypad_btn_click_handler(val);
+  77   2            break;
+  78   2          case BTN_FAC_SET_ADDR:          //工厂界面0X1300
+  79   2              win_fac_set_btn_click_handler(val);
+  80   2            break;
+  81   2      
+  82   2      
+  83   2          default:
+  84   2            break;
+  85   2        }
+  86   1      }
+  87          //保持按键处理回调函数
+  88          void btn_hold_res_callback(u16 addr,u16 val)   //按钮值改变再进入
+  89          {
+  90   1        switch(addr)
+  91   1        {
+  92   2          case BTN_PROG_MODE_SET_ADDR://0x1110      
+  93   2              win_prog_para_btn_hold_handler(val);
+  94   2            break;
+  95   2          case BTN_SET_LIGHT_ADDR:
+  96   2            win_light_set_btn_hold_handler(val);    
+  97   2            break;  
+  98   2          case BTN_LANGUAGE_ADDR:
+  99   2            win_language_set_btn_hold_handler(val);
+ 100   2            break;
+ 101   2          case BTN_SET_BUZZ_ADDR:
+ 102   2            win_buzz_set_btn_hold_handler(val);
+ 103   2            break;
+ 104   2          default:
+ 105   2            break;
+ 106   2        }
+ 107   1      }
+ 108          //保持时间按键点击回调函数
+ 109          void btn_hold_click_callback(u16 addr,u16 val)
+ 110          {
+ 111   1        STR_WIN_TypeDef *obj = &win_str_data;
+ 112   1        val =0;
+ 113   1        if(obj->start == 1) return;
+ 114   1        switch(addr)
+ 115   1        {   
+C51 COMPILER V9.60.7.0   START_WIN                                                         03/20/2026 14:51:31 PAGE 3   
+
+ 116   2          default:
+ 117   2            break;
+ 118   2        }
+ 119   1      }
+ 120          //保持时间按键到时回调函数
+ 121          void btn_hold_callback(u16 addr,u16 val)
+ 122          {
+ 123   1        STR_WIN_TypeDef *obj = &win_str_data;
+ 124   1        val =0;
+ 125   1        if(obj->start == 1) return;
+ 126   1        switch(addr)
+ 127   1        {
+ 128   2          default:
+ 129   2            break;
+ 130   2        }
+ 131   1      }
+ 132          //////////////////////////////////////////////////////////////////////////////////////////////////////////
+             -///////
+ 133          //////////////////////////////////功能调用子函数//////////////////////////////////////////////////////////
+             -///////
+ 134          static void win_calc_function(void)
+ 135          {
+ 136   1        float xdata temp,temp1;
+ 137   1        STR_WIN_TypeDef *obj = &win_str_data; 
+ 138   1        temp = product_data[obj->product_id].vol_max-product_data[obj->product_id].vol_min;
+ 139   1        temp1 = product_data[obj->product_id].para1.max-product_data[obj->product_id].para1.min;
+ 140   1        obj->k_factor = temp/temp1;
+ 141   1        
+ 142   1        temp = obj->k_factor*product_data[obj->product_id].para1.min;
+ 143   1        obj->b_factor = product_data[obj->product_id].vol_min-temp;
+ 144   1      }
+ 145          
+ 146          void win_change_page(u16 page)    //切换窗口页面
+ 147          {
+ 148   1        u16 xdata temp;
+ 149   1        STR_WIN_TypeDef *obj = &win_str_data;
+ 150   1        
+ 151   1        
+ 152   1        if(page == N2_RUN)  obj->pre_page = page;
+ 153   1      //  if(page == SYSTEM_PAGE) obj->pre_page = page;
+ 154   1        if(page == BACK_PAGE) page = obj->pre_page;
+ 155   1        
+ 156   1        temp = page_reg_ch[page];  //Chinese
+ 157   1      
+ 158   1        //fresh page
+ 159   1        switch(page)
+ 160   1        {
+ 161   2          case N2_MAIN:
+ 162   2          case CO2_MAIN:
+ 163   2              win_disp_cooling_time(win_str_data.set_cooling_time);
+ 164   2              win_disp_volume(win_str_data.set_volume);
+ 165   2              win_disp_temp(win_str_data.set_grind_temp);
+ 166   2              win_disp_speed(win_str_data.set_grind_speed);
+ 167   2              win_disp_grind_time(win_str_data.set_grind_time);
+ 168   2          
+ 169   2              win_disp_prog_num(win_str_data.prog_grp);
+ 170   2            break;
+ 171   2          case N2_RUN:
+ 172   2              win_disp_total_time(win_str_data.total_time);
+ 173   2            break;
+ 174   2          
+ 175   2          
+C51 COMPILER V9.60.7.0   START_WIN                                                         03/20/2026 14:51:31 PAGE 4   
+
+ 176   2          
+ 177   2          default:break;
+ 178   2        }
+ 179   1        //goto page
+ 180   1        sys_disp_page(temp);
+ 181   1      }
+ 182          
+ 183          //---------------------------------------------------------------//
+ 184          //name: win_load_setpara
+ 185          //---------------------------------------------------------------//
+ 186          static void win_load_setpara(void)
+ 187          {
+ 188   1        //1.load startup logo
+ 189   1        if(win_str_data.logo >0) win_str_data.logo = 4;
+ 190   1        sys_write_vp(ANIMOTION_LOGO_ADDR,(u8*)&win_str_data.logo,2);  //no logo for oem
+ 191   1      
+ 192   1        if(win_str_data.light>100) win_str_data.light = 100;
+ 193   1        if(win_str_data.light<10) win_str_data.light = 10;
+ 194   1        sys_setdis_light(win_str_data.light);
+ 195   1        sys_write_vp(BTN_SET_LIGHT_ADDR,(u8*)&win_str_data.light,1);  
+ 196   1      
+ 197   1        if(win_str_data.alarm > 1) win_str_data.alarm = 1;
+ 198   1        if(win_str_data.alarm < 0) win_str_data.alarm = 0;
+ 199   1        sys_enable_speaker(1-win_str_data.alarm);   
+ 200   1        sys_write_vp(BTN_SET_BUZZ_ADDR,(u8*)&win_str_data.alarm,1);
+ 201   1        
+ 202   1        if(win_str_data.language >= 3) win_str_data.language = 3;
+ 203   1        if(win_str_data.language <= 0) win_str_data.language = 0; 
+ 204   1        sys_write_vp(BTN_LANGUAGE_ADDR,(u8*)&win_str_data.language,1);
+ 205   1        
+ 206   1        if(win_str_data.medium_flag < 1 || win_str_data.medium_flag > 2) win_str_data.medium_flag = 1;
+ 207   1      
+ 208   1      }
+ 209          
+ 210          //////////////////////////////////////////////////////////////////////////////////////////////////////////
+             -/////
+ 211          //////////////////////////////////////////事件处理函数////////////////////////////////////////////////////
+             -//////
+ 212          //////////////////////////////////////////////////////////////////////////////////////////////////////////
+             -/////
+ 213          //处理主界面按钮点击事件  
+ 214          static void win_main_btn_click_handler(u16 btn_val)
+ 215          {
+ 216   1        #define  BTN_VAL_START             0X01    //start
+ 217   1        #define  BTN_VAL_STOP              0X02    //start  
+ 218   1        #define  BTN_VAL_SET               0X03    //settings into  
+ 219   1        #define  BTN_VAL_CONFOIRM          0X04
+ 220   1        #define  BTN_VAL_CO2               0X05
+ 221   1        #define  BTN_VAL_N2                0X06
+ 222   1        #define  BTN_VAL_MAIN_PAGE         0X07
+ 223   1        #define  BTN_VAL_SYSTEM_PAGE       0X08
+ 224   1        #define  BTN_VAL_INFO_PAGE         0X09
+ 225   1        
+ 226   1        #define  BTN_VAL_COOLING_TIME_ADD  0X0A
+ 227   1        #define  BTN_VAL_COOLING_TIME_DEC  0X0B
+ 228   1        #define  BTN_VAL_VOLUME_ADD        0X0C
+ 229   1        #define  BTN_VAL_VOLUME_DEC        0X0D 
+ 230   1        #define  BTN_VAL_TEMP_ADD          0X0E
+ 231   1        #define  BTN_VAL_TEMP_DEC          0X0F
+ 232   1        #define  BTN_VAL_SPEED_ADD         0X10
+ 233   1        #define  BTN_VAL_SPEED_DEC         0X11
+ 234   1        #define  BTN_VAL_MILL_TIME_ADD     0X12
+C51 COMPILER V9.60.7.0   START_WIN                                                         03/20/2026 14:51:31 PAGE 5   
+
+ 235   1        #define  BTN_VAL_MILL_TIME_DEC     0X13
+ 236   1        
+ 237   1        u16 xdata temp = 0;
+ 238   1        switch(btn_val)
+ 239   1        {
+ 240   2          case BTN_VAL_START:
+ 241   2            if(win_str_data.start == 0 && win_str_data.door_state == 1)
+ 242   2            {
+ 243   3              if(win_str_data.medium_flag == 1) win_change_page(N2_MAIN_CONFIRM); 
+ 244   3              else if(win_str_data.medium_flag == 2) win_change_page(CO2_MAIN_CONFIRM); 
+ 245   3            }
+ 246   2           break;
+ 247   2          case BTN_VAL_STOP:
+ 248   2              win_str_data.start = 0;
+ 249   2           break;     
+ 250   2      
+ 251   2          case BTN_VAL_CONFOIRM:
+ 252   2              win_str_data.start = 1;
+ 253   2              win_str_data.total_time = win_str_data.use_cooling_time + win_str_data.use_grind_time;
+ 254   2                if(win_str_data.medium_flag == 1) win_change_page(N2_RUN);  
+ 255   2                  else if(win_str_data.medium_flag == 2) win_change_page(CO2_RUN);  
+ 256   2           break;
+ 257   2          
+ 258   2          case BTN_VAL_SET:         //Page1:Setting*****************************
+ 259   2              Fresh_Service_Time();
+ 260   2              win_change_page(MENU_PAGE);
+ 261   2            break;    
+ 262   2      
+ 263   2          case BTN_VAL_CO2:
+ 264   2              win_change_page(CO2_MAIN);  
+ 265   2              win_str_data.medium_flag = 2;
+ 266   2              norflash_write(SYS_MEDIUM_OFFSET,(u8*)&win_str_data.medium_flag,2);
+ 267   2            break;
+ 268   2          
+ 269   2          case BTN_VAL_N2:
+ 270   2              win_change_page(N2_MAIN); 
+ 271   2              win_str_data.medium_flag = 1;
+ 272   2              norflash_write(SYS_MEDIUM_OFFSET,(u8*)&win_str_data.medium_flag,2);
+ 273   2            break;
+ 274   2          
+ 275   2          case BTN_VAL_MAIN_PAGE:
+ 276   2            if(win_str_data.medium_flag == 1)
+ 277   2              win_change_page(N2_MAIN); 
+ 278   2            else if(win_str_data.medium_flag == 2)
+ 279   2              win_change_page(CO2_MAIN);  
+ 280   2            break;
+ 281   2          case BTN_VAL_SYSTEM_PAGE:
+ 282   2              win_change_page(SET_PAGE);  
+ 283   2            break;
+ 284   2          case BTN_VAL_INFO_PAGE:
+ 285   2              if(win_str_data.logo == 4) //no logo
+ 286   2                win_change_page(INFO_PAGE); 
+ 287   2              else
+ 288   2                win_change_page(INFO_PAGE_LOGO);  
+ 289   2            break;
+ 290   2          case BTN_VAL_SPEED_ADD:  //转速
+ 291   2            win_str_data.set_grind_speed = win_str_data.set_grind_speed + product_data[win_str_data.product_id].par
+             -a1.unit;
+ 292   2            if(win_str_data.set_grind_speed > product_data[win_str_data.product_id].para1.max) 
+ 293   2               win_str_data.set_grind_speed = product_data[win_str_data.product_id].para1.max;
+ 294   2            win_disp_speed(win_str_data.set_grind_speed);
+ 295   2            win_str_data.use_grind_speed = win_str_data.set_grind_speed;  
+C51 COMPILER V9.60.7.0   START_WIN                                                         03/20/2026 14:51:31 PAGE 6   
+
+ 296   2           break;
+ 297   2          case BTN_VAL_SPEED_DEC:
+ 298   2            win_str_data.set_grind_speed = win_str_data.set_grind_speed - product_data[win_str_data.product_id].par
+             -a1.unit;
+ 299   2            if(win_str_data.set_grind_speed < product_data[win_str_data.product_id].para1.min) 
+ 300   2               win_str_data.set_grind_speed = product_data[win_str_data.product_id].para1.min;
+ 301   2            win_disp_speed(win_str_data.set_grind_speed);
+ 302   2            win_str_data.use_grind_speed = win_str_data.set_grind_speed;  
+ 303   2           break;
+ 304   2          case BTN_VAL_VOLUME_ADD:  //液氮干冰量
+ 305   2            win_str_data.set_volume = win_str_data.set_volume + product_data[win_str_data.product_id].para4.unit;
+ 306   2           if(win_str_data.set_volume > product_data[win_str_data.product_id].para4.max)
+ 307   2              win_str_data.set_volume = product_data[win_str_data.product_id].para4.max;
+ 308   2           win_disp_volume(win_str_data.set_volume);
+ 309   2           win_str_data.use_volume = win_str_data.set_volume; 
+ 310   2           break;
+ 311   2          case BTN_VAL_VOLUME_DEC:
+ 312   2            win_str_data.set_volume = win_str_data.set_volume - product_data[win_str_data.product_id].para4.unit;
+ 313   2            if(win_str_data.set_volume < product_data[win_str_data.product_id].para4.min) 
+ 314   2               win_str_data.set_volume = product_data[win_str_data.product_id].para4.min;
+ 315   2            win_disp_volume(win_str_data.set_volume);
+ 316   2            win_str_data.use_volume = win_str_data.set_volume;  
+ 317   2           break;
+ 318   2          case BTN_VAL_TEMP_ADD:  //温度
+ 319   2            win_str_data.set_grind_temp = win_str_data.set_grind_temp + product_data[win_str_data.product_id].para3
+             -.unit;
+ 320   2           if(win_str_data.set_grind_temp > product_data[win_str_data.product_id].para3.max)
+ 321   2              win_str_data.set_grind_temp = product_data[win_str_data.product_id].para3.max;
+ 322   2            win_disp_temp(win_str_data.set_grind_temp);
+ 323   2           win_str_data.use_grind_temp = win_str_data.set_grind_temp; 
+ 324   2           break;
+ 325   2          case BTN_VAL_TEMP_DEC:
+ 326   2            win_str_data.set_grind_temp = win_str_data.set_grind_temp - product_data[win_str_data.product_id].para3
+             -.unit;
+ 327   2            if(win_str_data.set_grind_temp < product_data[win_str_data.product_id].para3.min) 
+ 328   2               win_str_data.set_grind_temp = product_data[win_str_data.product_id].para3.min;
+ 329   2            win_disp_temp(win_str_data.set_grind_temp);
+ 330   2            win_str_data.use_grind_temp = win_str_data.set_grind_temp;  
+ 331   2           break;
+ 332   2          case BTN_VAL_MILL_TIME_ADD: //研磨时间
+ 333   2            win_str_data.set_grind_time = win_str_data.set_grind_time + product_data[win_str_data.product_id].para2
+             -.unit;
+ 334   2           if(win_str_data.set_grind_time > product_data[win_str_data.product_id].para2.max)
+ 335   2              win_str_data.set_grind_time = product_data[win_str_data.product_id].para2.max;
+ 336   2            win_disp_grind_time(win_str_data.set_grind_time);
+ 337   2            win_str_data.use_grind_time = win_str_data.set_grind_time;  
+ 338   2           break;
+ 339   2          case BTN_VAL_MILL_TIME_DEC:
+ 340   2              win_str_data.set_grind_time = win_str_data.set_grind_time - product_data[win_str_data.product_id].para
+             -2.unit;
+ 341   2            if(win_str_data.set_grind_time < product_data[win_str_data.product_id].para2.min) 
+ 342   2               win_str_data.set_grind_time = product_data[win_str_data.product_id].para2.min;
+ 343   2            win_disp_grind_time(win_str_data.set_grind_time);
+ 344   2            win_str_data.use_grind_time = win_str_data.set_grind_time;  
+ 345   2           break;
+ 346   2            
+ 347   2          case BTN_VAL_COOLING_TIME_ADD:  //冷冻时间
+ 348   2            win_str_data.set_cooling_time = win_str_data.set_cooling_time + product_data[win_str_data.product_id].p
+             -ara2.unit;
+ 349   2           if(win_str_data.set_cooling_time > product_data[win_str_data.product_id].para2.max)
+ 350   2              win_str_data.set_cooling_time = product_data[win_str_data.product_id].para2.max;
+ 351   2            win_disp_cooling_time(win_str_data.set_cooling_time);
+C51 COMPILER V9.60.7.0   START_WIN                                                         03/20/2026 14:51:31 PAGE 7   
+
+ 352   2            win_str_data.use_cooling_time = win_str_data.set_cooling_time;     
+ 353   2           break;
+ 354   2          case BTN_VAL_COOLING_TIME_DEC:
+ 355   2              win_str_data.set_cooling_time = win_str_data.set_cooling_time - product_data[win_str_data.product_id].
+             -para2.unit;
+ 356   2            if(win_str_data.set_cooling_time < product_data[win_str_data.product_id].para2.min) 
+ 357   2               win_str_data.set_cooling_time = product_data[win_str_data.product_id].para2.min;
+ 358   2            win_disp_cooling_time(win_str_data.set_cooling_time);
+ 359   2            win_str_data.use_cooling_time = win_str_data.set_cooling_time;  
+ 360   2           break;     
+ 361   2      
+ 362   2      
+ 363   2          break;
+ 364   2          default:break;
+ 365   2        }
+ 366   1      }
+ 367          
+ 368          #define  BTN_VAL_ACC      0X02 //升
+ 369          #define  BTN_VAL_DEC      0X01 //降
+ 370          /********************************************************
+ 371          函数名称：win_test_mode_btn_click_handler
+ 372          函数功能：程序设置页面九组选择程序
+ 373          *********************************************************/
+ 374          static void win_prog_num_sel_btn_click_handler(u16 btn_val)
+ 375          {
+ 376   1        switch(btn_val)
+ 377   1        {
+ 378   2          case BTN_VAL_ACC:
+ 379   2              if(win_str_data.prog_grp < 20) win_str_data.prog_grp++; 
+ 380   2            break;
+ 381   2          case BTN_VAL_DEC:
+ 382   2              if(win_str_data.prog_grp > 1) win_str_data.prog_grp--;  
+ 383   2            break;
+ 384   2          default:break;
+ 385   2        }
+ 386   1        sys_write_vp(ARTNUM_MAIN_PROG_NUM_ADDR,(u8*)&win_str_data.prog_grp,1);  
+ 387   1        norflash_write(SYS_LAST_PROG_OFFSET,(u8 *)&win_str_data.prog_grp,2);  
+ 388   1        
+ 389   1        win_load_prog_paras(PROG_COOLING_TIME_OFFSET,(u8 *)&win_str_data.set_cooling_time,6);
+ 390   1        win_disp_cooling_time(win_str_data.set_cooling_time);
+ 391   1        win_disp_volume(win_str_data.set_volume);
+ 392   1        win_disp_temp(win_str_data.set_grind_temp);
+ 393   1        win_disp_speed(win_str_data.set_grind_speed);
+ 394   1        win_disp_grind_time(win_str_data.set_grind_time);
+ 395   1      }
+ 396          
+ 397          #define  BTN_VAL_NO         0X1C00
+ 398          #define  BTN_VAL_YES        0X1400 //弹窗√
+ 399          #define  BTN_VAL_RETURN     0X1000 //返回
+ 400          #define  BTN_VAL_OVERSET    0X0800 //覆盖程序
+ 401          #define  BTN_VAL_TOSET      0X0400 //主页面选择框'
+ 402          
+ 403          #define  BTN_VAL_SEL_GRINDING_TIME        0X05   //总时间   total time
+ 404          #define  BTN_VAL_SEL_GRINDING_SPEED       0X04   //总时间   total time
+ 405          #define  BTN_VAL_SEL_GRINDING_TEMP        0X03   //暂停时间 pause time
+ 406          #define  BTN_VAL_SEL_VOLUME               0X02   //运行时间 rum time
+ 407          #define  BTN_VAL_SEL_COOLING_TIME         0X01   //转速/振幅
+ 408          void disp_input_icon(u16 btn_val)
+ 409          {
+ 410   1        sys_write_vp(ICON_INPUT_DISP1_ADDR,(u8 *)&win_str_data.input_disp1,5);
+ 411   1        if(win_str_data.language == 0)  //CN 
+ 412   1        {
+C51 COMPILER V9.60.7.0   START_WIN                                                         03/20/2026 14:51:31 PAGE 8   
+
+ 413   2          if(btn_val == BTN_VAL_SEL_COOLING_TIME)   win_str_data.input_disp1 = win_str_data.input_disp1;
+ 414   2          if(btn_val == BTN_VAL_SEL_VOLUME)         win_str_data.input_disp2 = win_str_data.input_disp2;
+ 415   2          if(btn_val == BTN_VAL_SEL_GRINDING_TEMP)  win_str_data.input_disp3 = win_str_data.input_disp3;
+ 416   2          if(btn_val == BTN_VAL_SEL_GRINDING_SPEED) win_str_data.input_disp4 = win_str_data.input_disp4;
+ 417   2          if(btn_val == BTN_VAL_SEL_GRINDING_TIME)  win_str_data.input_disp5 = win_str_data.input_disp5;
+ 418   2          sys_write_vp(ICON_INPUT_WORD1_ADDR,(u8 *)&win_str_data.input_disp1,5);
+ 419   2        }
+ 420   1        else if(win_str_data.language == 1)  //EN
+ 421   1        {
+ 422   2          if(btn_val == BTN_VAL_SEL_COOLING_TIME)   win_str_data.input_disp1 = win_str_data.input_disp1 + 1;
+ 423   2          if(btn_val == BTN_VAL_SEL_VOLUME)         win_str_data.input_disp2 = win_str_data.input_disp2 + 1;
+ 424   2          if(btn_val == BTN_VAL_SEL_GRINDING_TEMP)  win_str_data.input_disp3 = win_str_data.input_disp3 + 1;
+ 425   2          if(btn_val == BTN_VAL_SEL_GRINDING_SPEED) win_str_data.input_disp4 = win_str_data.input_disp4 + 1;
+ 426   2          if(btn_val == BTN_VAL_SEL_GRINDING_TIME)  win_str_data.input_disp5 = win_str_data.input_disp5 + 1;
+ 427   2          sys_write_vp(ICON_INPUT_WORD1_ADDR,(u8 *)&win_str_data.input_disp1,5);
+ 428   2        }
+ 429   1      //  else if(win_str_data.language == 2)  //RUS
+ 430   1      //  {
+ 431   1      //    if(btn_val == BTN_VAL_SEL_LEVEL) win_str_data.input_disp1 = win_str_data.input_disp1 + 2;
+ 432   1      //    if(btn_val == BTN_VAL_SEL_RUN_TIME) win_str_data.input_disp2 = win_str_data.input_disp2 + 2;
+ 433   1      //    if(btn_val == BTN_VAL_SEL_PAUSE_TIME) win_str_data.input_disp3 = win_str_data.input_disp3 + 2;
+ 434   1      //    if(btn_val == BTN_VAL_SEL_CYCLE) win_str_data.input_disp4 = win_str_data.input_disp4 + 2;
+ 435   1      //    sys_write_vp(ICON_INPUT1_WORD_ADDR,(u8 *)&win_str_data.input_disp1,4);
+ 436   1      //  }
+ 437   1      //  else  //JAPAN
+ 438   1      //  {
+ 439   1      //    if(btn_val == BTN_VAL_SEL_LEVEL) win_str_data.input_disp1 = win_str_data.input_disp1 + 3;
+ 440   1      //    if(btn_val == BTN_VAL_SEL_RUN_TIME) win_str_data.input_disp2 = win_str_data.input_disp2 + 3;
+ 441   1      //    if(btn_val == BTN_VAL_SEL_PAUSE_TIME) win_str_data.input_disp3 = win_str_data.input_disp3 + 3;
+ 442   1      //    if(btn_val == BTN_VAL_SEL_CYCLE) win_str_data.input_disp4 = win_str_data.input_disp4 + 3;
+ 443   1      //    sys_write_vp(ICON_INPUT1_WORD_ADDR,(u8 *)&win_str_data.input_disp1,4);
+ 444   1      //  }
+ 445   1      }
+ 446          /********************************************************
+ 447          函数名称：win_prog_para_btn_hold_handler
+ 448          函数功能：程序设置处理函数
+ 449          *********************************************************/
+ 450          static void win_prog_para_btn_hold_handler(u16 btn_val)
+ 451          {
+ 452   1        if(win_str_data.paras_sel == BTN_VAL_SEL_COOLING_TIME)
+ 453   1        {
+ 454   2          if(win_str_data.set_cooling_time > product_data[win_str_data.product_id].para2.max) win_str_data.set_coo
+             -ling_time = product_data[win_str_data.product_id].para2.max;
+ 455   2          else if(win_str_data.set_cooling_time < product_data[win_str_data.product_id].para2.min) win_str_data.se
+             -t_cooling_time =product_data[win_str_data.product_id].para2.min;
+ 456   2          win_disp_cooling_time(win_str_data.set_cooling_time);   
+ 457   2        }
+ 458   1        else if(win_str_data.paras_sel == BTN_VAL_SEL_VOLUME)
+ 459   1        {
+ 460   2          if(win_str_data.set_volume > product_data[win_str_data.product_id].para4.max) win_str_data.set_volume = 
+             -product_data[win_str_data.product_id].para4.max;
+ 461   2          else if(win_str_data.set_volume < product_data[win_str_data.product_id].para4.min) win_str_data.set_volu
+             -me = product_data[win_str_data.product_id].para4.min;
+ 462   2          win_disp_volume(win_str_data.set_volume);           
+ 463   2        }
+ 464   1        else if(win_str_data.paras_sel == BTN_VAL_SEL_GRINDING_TEMP)
+ 465   1        {
+ 466   2          if(win_str_data.set_grind_temp > product_data[win_str_data.product_id].para3.max) win_str_data.set_grind
+             -_temp = product_data[win_str_data.product_id].para3.max;
+ 467   2          else if(win_str_data.set_grind_temp < product_data[win_str_data.product_id].para3.min) win_str_data.set_
+             -grind_temp = product_data[win_str_data.product_id].para3.min;
+ 468   2          win_disp_temp(win_str_data.set_grind_temp);           
+C51 COMPILER V9.60.7.0   START_WIN                                                         03/20/2026 14:51:31 PAGE 9   
+
+ 469   2        }
+ 470   1        else if(win_str_data.paras_sel == BTN_VAL_SEL_GRINDING_SPEED) 
+ 471   1        {
+ 472   2          if(win_str_data.set_grind_speed > product_data[win_str_data.product_id].para1.max) win_str_data.set_grin
+             -d_speed = product_data[win_str_data.product_id].para1.max;
+ 473   2          else if(win_str_data.set_grind_speed < product_data[win_str_data.product_id].para1.min) win_str_data.set
+             -_grind_speed = product_data[win_str_data.product_id].para1.min;
+ 474   2          win_disp_speed(win_str_data.set_grind_speed);                 
+ 475   2        }
+ 476   1        else if(win_str_data.paras_sel == BTN_VAL_SEL_GRINDING_TIME)  
+ 477   1        {
+ 478   2          if(win_str_data.set_grind_time > product_data[win_str_data.product_id].para2.max) win_str_data.set_grind
+             -_time = product_data[win_str_data.product_id].para2.max;
+ 479   2          else if(win_str_data.set_grind_time < product_data[win_str_data.product_id].para2.min) win_str_data.set_
+             -grind_time = product_data[win_str_data.product_id].para2.min;
+ 480   2          win_disp_grind_time(win_str_data.set_grind_time);                 
+ 481   2        }
+ 482   1        switch(btn_val) 
+ 483   1        {
+ 484   2          case BTN_VAL_SEL_COOLING_TIME:
+ 485   2              memset(&win_str_data.input_disp1, 0, 5 * sizeof(win_str_data.input_disp1));
+ 486   2              win_str_data.input_disp1 = 0x01;
+ 487   2              disp_input_icon(btn_val);
+ 488   2              win_str_data.paras_sel = btn_val;
+ 489   2          
+ 490   2              win_str_data.set_cooling_time_bit = 3;
+ 491   2              win_str_data.set_cooling_time = 0;
+ 492   2              win_disp_cooling_time(win_str_data.set_cooling_time);     
+ 493   2            break;    
+ 494   2          case BTN_VAL_SEL_VOLUME:
+ 495   2              memset(&win_str_data.input_disp1, 0, 5 * sizeof(win_str_data.input_disp1));
+ 496   2              win_str_data.input_disp2 = 0x01;
+ 497   2              disp_input_icon(btn_val);
+ 498   2              win_str_data.paras_sel = btn_val;
+ 499   2            break;
+ 500   2          case BTN_VAL_SEL_GRINDING_TEMP:
+ 501   2              memset(&win_str_data.input_disp1, 0, 5 * sizeof(win_str_data.input_disp1));
+ 502   2              win_str_data.input_disp3 = 0x01;
+ 503   2              disp_input_icon(btn_val);
+ 504   2              win_str_data.paras_sel = btn_val;   
+ 505   2            break;
+ 506   2          case BTN_VAL_SEL_GRINDING_SPEED:
+ 507   2              memset(&win_str_data.input_disp1, 0, 5 * sizeof(win_str_data.input_disp1));
+ 508   2              win_str_data.input_disp4 = 0x01;
+ 509   2              disp_input_icon(btn_val);
+ 510   2              win_str_data.paras_sel = btn_val;
+ 511   2            break;
+ 512   2          case BTN_VAL_SEL_GRINDING_TIME:
+ 513   2              memset(&win_str_data.input_disp1, 0, 5 * sizeof(win_str_data.input_disp1));
+ 514   2              win_str_data.input_disp5 = 0x01;
+ 515   2              disp_input_icon(btn_val);
+ 516   2              win_str_data.paras_sel = btn_val;
+ 517   2          
+ 518   2              win_str_data.set_grind_time_bit = 3;
+ 519   2              win_str_data.set_grind_time = 0;
+ 520   2              win_disp_grind_time(win_str_data.set_grind_time);       
+ 521   2            break;
+ 522   2          
+ 523   2          case BTN_VAL_TOSET:
+ 524   2              if(win_str_data.prog_grp == 0) win_str_data.prog_grp = 1;
+ 525   2              sys_write_vp(ARTNUM_MAIN_PROG_NUM_ADDR,(u8*)&win_str_data.prog_grp,1);
+ 526   2              memcpy((u8 *)&win_str_data.set_cooling_time,(u8 *)&win_str_data.use_cooling_time,10);          //displ
+C51 COMPILER V9.60.7.0   START_WIN                                                         03/20/2026 14:51:31 PAGE 10  
+
+             -ay set
+ 527   2              win_load_prog_paras(PROG_COOLING_TIME_OFFSET,(u8*)&win_str_data.set_cooling_time,6);  //read prog para
+             - from flash
+ 528   2              if(win_str_data.medium_flag == 1) win_change_page(N2_PROG); 
+ 529   2              else if(win_str_data.medium_flag == 2) win_change_page(CO2_PROG); 
+ 530   2            break;
+ 531   2          case BTN_VAL_RETURN: //Reset the key value when returning and jump page and clean paras_sel
+ 532   2              memset(&win_str_data.input_disp1, 0, 5 * sizeof(win_str_data.input_disp1));
+ 533   2              sys_write_vp(ICON_INPUT_DISP1_ADDR,(u8 *)&win_str_data.input_disp1,4);
+ 534   2              sys_write_vp(ICON_INPUT_WORD1_ADDR,(u8 *)&win_str_data.input_disp1,4);
+ 535   2          
+ 536   2              win_str_data.paras_sel = 0;
+ 537   2              if(win_str_data.medium_flag == 1) win_change_page(N2_MAIN); 
+ 538   2              else if(win_str_data.medium_flag == 2) win_change_page(CO2_MAIN); 
+ 539   2            break;
+ 540   2          case BTN_VAL_OVERSET:  //Jump to pop-up page
+ 541   2              memset(&win_str_data.input_disp1, 0, 5 * sizeof(win_str_data.input_disp1));
+ 542   2              sys_write_vp(ICON_INPUT_DISP1_ADDR,(u8 *)&win_str_data.input_disp1,4);
+ 543   2              sys_write_vp(ICON_INPUT_WORD1_ADDR,(u8 *)&win_str_data.input_disp1,4);
+ 544   2              if(win_str_data.medium_flag == 1) win_change_page(N2_PROG_CONFIRM); 
+ 545   2              else if(win_str_data.medium_flag == 2) win_change_page(CO2_PROG_CONFIRM); 
+ 546   2      
+ 547   2            break;
+ 548   2          case BTN_VAL_YES:    //pop-up page YES   Put Set -> Prog and save flash
+ 549   2              win_save_prog_paras(PROG_COOLING_TIME_OFFSET,(u8*)&win_str_data.set_cooling_time,6);  //write norflash
+ 550   2              if(win_str_data.medium_flag == 1) win_change_page(N2_PROG); 
+ 551   2              else if(win_str_data.medium_flag == 2) win_change_page(CO2_PROG); 
+ 552   2            break;
+ 553   2          case BTN_VAL_NO:
+ 554   2              if(win_str_data.medium_flag == 1) win_change_page(N2_PROG); 
+ 555   2              else if(win_str_data.medium_flag == 2) win_change_page(CO2_PROG); 
+ 556   2            break;
+ 557   2      
+ 558   2                  
+ 559   2          default:
+ 560   2            break;
+ 561   2        }
+ 562   1      }
+ 563          
+ 564          /********************************************************
+ 565          函数名称：win_para_keypad_btn_click_handler
+ 566          函数功能：数字键盘处理函数
+ 567          *********************************************************/
+ 568          static void win_para_keypad_btn_click_handler(u16 btn_val)
+ 569          {
+ 570   1        #define  BTN_VAL_1    0x01
+ 571   1        #define  BTN_VAL_2    0x02
+ 572   1        #define  BTN_VAL_3    0x03
+ 573   1        #define  BTN_VAL_4    0x04
+ 574   1        #define  BTN_VAL_5    0x05
+ 575   1        #define  BTN_VAL_6    0x06
+ 576   1        #define  BTN_VAL_7    0x07
+ 577   1        #define  BTN_VAL_8    0x08
+ 578   1        #define  BTN_VAL_9    0x09
+ 579   1        #define  BTN_VAL_0    0x0A  
+ 580   1        #define  BTN_VAL_cancel    0X0B
+ 581   1        #define  BTN_VAL_negative  0X0C
+ 582   1        s16 xdata temp;
+ 583   1        switch(win_str_data.paras_sel)
+ 584   1        {
+ 585   2      /****************************SEL_LEVEL***********************************/    
+ 586   2          case BTN_VAL_SEL_COOLING_TIME:
+C51 COMPILER V9.60.7.0   START_WIN                                                         03/20/2026 14:51:31 PAGE 11  
+
+ 587   2            temp = win_str_data.set_cooling_time;
+ 588   2            if(btn_val<BTN_VAL_cancel) //***********数字按键************
+ 589   2            {
+ 590   3              if(btn_val == 10) btn_val =0;
+ 591   3              if(win_str_data.set_cooling_time_bit == 3) temp += btn_val*60;//bits min
+ 592   3              else if(win_str_data.set_cooling_time_bit == 2)
+ 593   3              {
+ 594   4                if(btn_val>5) btn_val=5;
+ 595   4                temp += btn_val*10;//decade sec
+ 596   4              }
+ 597   3              else if(win_str_data.set_cooling_time_bit == 1) temp += btn_val; //bits min
+ 598   3              if(win_str_data.set_cooling_time_bit > 0)win_str_data.set_cooling_time_bit--;   
+ 599   3            }
+ 600   2            else    //*******************cancel***********************
+ 601   2            {
+ 602   3              if(win_str_data.set_cooling_time_bit < 3)win_str_data.set_cooling_time_bit++;
+ 603   3              if(win_str_data.set_cooling_time_bit == 3) temp = 0;
+ 604   3              else if(win_str_data.set_cooling_time_bit == 2) temp -= temp%60;
+ 605   3              else if(win_str_data.set_cooling_time_bit == 1) temp -= temp%10;  
+ 606   3            }
+ 607   2            win_str_data.set_cooling_time = temp;     
+ 608   2            win_disp_cooling_time(win_str_data.set_cooling_time);   
+ 609   2            break;
+ 610   2      /*******************************RUN_TIME***********************************/      
+ 611   2          case BTN_VAL_SEL_VOLUME:
+ 612   2            temp = win_str_data.set_volume;
+ 613   2            if(btn_val<BTN_VAL_cancel) //****Number button****
+ 614   2            {
+ 615   3              if(btn_val == 10) btn_val = 0;
+ 616   3              temp = temp%1000;
+ 617   3              temp = temp*10;
+ 618   3              temp += btn_val;
+ 619   3            }
+ 620   2            else//***cance****
+ 621   2            {
+ 622   3              temp = temp/10;
+ 623   3            } 
+ 624   2            win_str_data.set_volume = temp; 
+ 625   2            win_disp_volume(win_str_data.set_volume);
+ 626   2            break;
+ 627   2      /*****************************PAUSE_TIME***********************************/    
+ 628   2          case BTN_VAL_SEL_GRINDING_TEMP:
+ 629   2            temp = win_str_data.set_grind_temp;
+ 630   2            if(btn_val<BTN_VAL_cancel) //****Number button****
+ 631   2            {
+ 632   3              if(btn_val == 10) btn_val = 0;
+ 633   3              temp = temp%100;
+ 634   3              temp = temp*10;
+ 635   3              temp = (temp>=0)? (temp+btn_val):(temp-btn_val);
+ 636   3            }
+ 637   2            else//***cance****
+ 638   2            {
+ 639   3              temp = temp/10;
+ 640   3            }
+ 641   2            if(btn_val == BTN_VAL_negative)
+ 642   2            {
+ 643   3              temp = 0-temp;
+ 644   3            }
+ 645   2            win_str_data.set_grind_temp = temp; 
+ 646   2          
+ 647   2            win_disp_temp(win_str_data.set_grind_temp);
+ 648   2            break;
+C51 COMPILER V9.60.7.0   START_WIN                                                         03/20/2026 14:51:31 PAGE 12  
+
+ 649   2            
+ 650   2      /****************************TOTAL_TIME***********************************/
+ 651   2          case BTN_VAL_SEL_GRINDING_SPEED:
+ 652   2            temp = win_str_data.set_grind_speed;
+ 653   2            if(btn_val<BTN_VAL_cancel) //****Number button****
+ 654   2            {
+ 655   3              if(btn_val == 10) btn_val = 0;
+ 656   3              temp = temp%1000;
+ 657   3              temp = temp*10;
+ 658   3              temp += btn_val;
+ 659   3            }
+ 660   2            else//***cance****
+ 661   2            {
+ 662   3              temp = temp/10;
+ 663   3            } 
+ 664   2            win_str_data.set_grind_speed = temp;  
+ 665   2            win_disp_speed(win_str_data.set_grind_speed);
+ 666   2            break;
+ 667   2          case BTN_VAL_SEL_GRINDING_TIME:
+ 668   2            temp = win_str_data.set_grind_time;
+ 669   2            if(btn_val<BTN_VAL_cancel) //***********数字按键************
+ 670   2            {
+ 671   3              if(btn_val == 10) btn_val =0;
+ 672   3              if(win_str_data.set_grind_time_bit == 3) temp += btn_val*60;//bits min
+ 673   3              else if(win_str_data.set_grind_time_bit == 2)
+ 674   3              {
+ 675   4                if(btn_val>5) btn_val=5;
+ 676   4                temp += btn_val*10;//decade sec
+ 677   4              }
+ 678   3              else if(win_str_data.set_grind_time_bit == 1) temp += btn_val; //bits min
+ 679   3              if(win_str_data.set_grind_time_bit > 0)win_str_data.set_grind_time_bit--;   
+ 680   3            }
+ 681   2            else    //*******************cancel***********************
+ 682   2            {
+ 683   3              if(win_str_data.set_grind_time_bit < 3)win_str_data.set_grind_time_bit++;
+ 684   3              if(win_str_data.set_grind_time_bit == 3) temp = 0;
+ 685   3              else if(win_str_data.set_grind_time_bit == 2) temp -= temp%60;
+ 686   3              else if(win_str_data.set_grind_time_bit == 1) temp -= temp%10;  
+ 687   3            }
+ 688   2            win_str_data.set_grind_time = temp;     
+ 689   2            win_disp_grind_time(win_str_data.set_grind_time);   
+ 690   2            break;
+ 691   2          default:
+ 692   2            break;
+ 693   2        }
+ 694   1      }
+ 695          /********************************************************
+ 696          win_pass_keypad_btn_click_handler
+ 697          函数功能：后台密码数字键盘处理函数
+ 698          *********************************************************/
+ 699          static void win_pass_keypad_btn_click_handler(u16 btn_val)
+ 700          {
+ 701   1        u16 xdata temp;
+ 702   1        temp = win_str_data.passcode;
+ 703   1        if(btn_val == 12)   //弹窗后 还原时间
+ 704   1        {
+ 705   2          win_str_data.used_time_h = 0;
+ 706   2          win_str_data.used_time_l = 0;
+ 707   2      
+ 708   2          norflash_write(RUNTIME_MIN_HADDR,(u8 *)&win_str_data.used_time_h,2);
+ 709   2      
+ 710   2          win_str_data.used_time = win_str_data.used_time_h;
+C51 COMPILER V9.60.7.0   START_WIN                                                         03/20/2026 14:51:31 PAGE 13  
+
+ 711   2          win_str_data.used_time <<= 16;
+ 712   2          win_str_data.used_time |= win_str_data.used_time_l;
+ 713   2          win_str_data.disp_time = win_str_data.used_time/3600;  //小时数
+ 714   2        
+ 715   2          sys_write_vp(ARTNUM_UT_ADDR,(u8*)&win_str_data.disp_time,1);   //总运行时间清零
+ 716   2          win_str_data.passcode = 0;
+ 717   2            
+ 718   2          win_change_page(SET_PAGE);
+ 719   2      
+ 720   2        }
+ 721   1        if(btn_val == 13)   //X
+ 722   1        {
+ 723   2          win_change_page(SET_PAGE);
+ 724   2        }
+ 725   1        else if(btn_val < 11)
+ 726   1        {
+ 727   2          if(btn_val == 10) btn_val =0;
+ 728   2          temp = temp%1000;
+ 729   2          temp = temp*10;
+ 730   2          temp +=btn_val;
+ 731   2          if(temp>9999) temp = 9999;
+ 732   2          else if(temp <0) temp = 0;
+ 733   2          win_str_data.passcode = temp;
+ 734   2          sys_write_vp(ARTNUM_PASSCODE_ADDR,(u8*)&win_str_data.passcode,1);       
+ 735   2        }
+ 736   1        else
+ 737   1        {
+ 738   2          temp= temp/10;
+ 739   2          if(temp <0) temp=0;
+ 740   2          win_str_data.passcode = temp;
+ 741   2          sys_write_vp(ARTNUM_PASSCODE_ADDR,(u8*)&win_str_data.passcode,1);     
+ 742   2        }
+ 743   1        if(temp == 1010)            //复位密码
+ 744   1        {
+ 745   2          win_str_data.passcode = 0;
+ 746   2          sys_write_vp(ARTNUM_PASSCODE_ADDR,(u8*)&win_str_data.passcode,1);
+ 747   2          win_change_page(RESET_PAGE);
+ 748   2        }
+ 749   1        else if(temp == 5973)      //后台密码
+ 750   1        {
+ 751   2          win_change_page(FAC_PAGE);
+ 752   2          win_str_data.passcode = 0;
+ 753   2          sys_write_vp(ARTNUM_PASSCODE_ADDR,(u8*)&win_str_data.passcode,1); 
+ 754   2        }
+ 755   1      }
+ 756          void Fresh_Service_Time(void)
+ 757          {
+ 758   1        win_str_data.disp_time = win_str_data.used_time/3600;  //小时数
+ 759   1        sys_write_vp(ARTNUM_UT_ADDR,(u8*)&win_str_data.disp_time,1);
+ 760   1      }
+ 761          
+ 762          #define BTN_LOGO        0X08
+ 763          /********************************************************
+ 764          函数名：win_fac_set_btn_click_handler(u16 btn_val)
+ 765          函数功能：工厂界面
+ 766          *********************************************************/
+ 767          static void win_fac_set_btn_click_handler(u16 btn_val)
+ 768          {
+ 769   1        switch(btn_val)//后台界面0X1300
+ 770   1        {
+ 771   2          case BTN_LOGO://logo
+ 772   2            win_str_data.logo = 4 - win_str_data.logo;
+C51 COMPILER V9.60.7.0   START_WIN                                                         03/20/2026 14:51:31 PAGE 14  
+
+ 773   2            if(win_str_data.logo >0) win_str_data.logo = 4;
+ 774   2            sys_write_vp(ANIMOTION_LOGO_ADDR,(u8*)&win_str_data.logo,2);  //no logo for oem 
+ 775   2            norflash_write(SYS_LOGO_OFFSET,(u8 *)&win_str_data.logo,2);
+ 776   2            if(win_str_data.logo == 4)  //无logo
+ 777   2              sys_write_vp(STRING_PRODUCT_ADDR,(u8*)modle_version,sizeof(modle_version));
+ 778   2            else
+ 779   2              sys_write_vp(STRING_PRODUCT_ADDR,(u8*)product_data[win_str_data.product_id].name,sizeof(product_data[w
+             -in_str_data.product_id].name));
+ 780   2            break;
+ 781   2      
+ 782   2          default:
+ 783   2            break;
+ 784   2        }
+ 785   1      }
+ 786          static void win_light_set_btn_hold_handler(u16 btn_val) 
+ 787          {
+ 788   1        win_str_data.light = btn_val;
+ 789   1        sys_setdis_light(win_str_data.light);
+ 790   1        norflash_write(SYS_LIGHT_OFFSET,(u8 *)&win_str_data.light,2); 
+ 791   1      }
+ 792          static void win_language_set_btn_hold_handler(u16 btn_val)
+ 793          {
+ 794   1        win_str_data.language = btn_val;
+ 795   1        norflash_write(SYS_LANGUAGE_OFFSET,(u8 *)&win_str_data.language,2);   
+ 796   1      }
+ 797          static void win_buzz_set_btn_hold_handler(u16 btn_val)
+ 798          {
+ 799   1        win_str_data.alarm = btn_val;
+ 800   1        sys_enable_speaker(1-win_str_data.alarm);
+ 801   1        norflash_write(SYS_BUZZ_OFFSET,(u8 *)&win_str_data.alarm,2);    
+ 802   1      }
+ 803          /********************************************************
+ 804          函数名称：void win_save_prog_paras(u16 offaddr,u8 *var_addr,u16 len)
+ 805          函数功能：存储参数
+ 806          函数内容：
+ 807          u16 offaddr   flash起始地址
+ 808          u8 *var_addr  变量地址
+ 809          u16 len       变量长度 
+ 810          *********************************************************/
+ 811          void win_save_prog_paras(u16 offaddr,u8 *var_addr,u16 len)
+ 812          {
+ 813   1        u16 addr;
+ 814   1        STR_WIN_TypeDef *obj = &win_str_data; 
+ 815   1      
+ 816   1        addr = 0x10 * win_str_data.prog_grp + offaddr;
+ 817   1        
+ 818   1        norflash_write(addr,var_addr,len);
+ 819   1      }
+ 820          
+ 821          /********************************************************
+ 822          函数名称：void win_load_prog_paras(u16 offaddr,u8 *var_addr,u16 len)
+ 823          函数功能：读取参数
+ 824          函数内容：
+ 825          u16 offaddr   flash起始地址
+ 826          u8 *var_addr  变量地址
+ 827          u16 len       变量长度 
+ 828          *********************************************************/
+ 829          
+ 830          void win_load_prog_paras(u16 offaddr,u8 *var_addr,u16 len)
+ 831          {
+ 832   1        u16 addr;
+ 833   1        u16 xdata i;
+C51 COMPILER V9.60.7.0   START_WIN                                                         03/20/2026 14:51:31 PAGE 15  
+
+ 834   1        STR_WIN_TypeDef *obj = &win_str_data; 
+ 835   1      
+ 836   1        addr =  0x10 * win_str_data.prog_grp + offaddr;
+ 837   1      
+ 838   1        norflash_read(addr,var_addr,len);
+ 839   1        
+ 840   1        for(i = 0;i<len;i++)
+ 841   1        {
+ 842   2          addr = offaddr + i;
+ 843   2          switch(addr)
+ 844   2          {
+ 845   3            case PROG_COOLING_TIME_OFFSET:
+ 846   3              if(win_str_data.set_cooling_time > product_data[win_str_data.product_id].para2.max) win_str_data.set_c
+             -ooling_time = product_data[win_str_data.product_id].para2.max;  
+ 847   3              if(win_str_data.set_cooling_time < product_data[win_str_data.product_id].para2.min) win_str_data.set_c
+             -ooling_time = product_data[win_str_data.product_id].para2.min;  
+ 848   3            break;
+ 849   3            case PROG_VOLUME_OFFSET:  
+ 850   3              if(win_str_data.set_volume > product_data[win_str_data.product_id].para4.max) win_str_data.set_volume 
+             -= product_data[win_str_data.product_id].para4.max;
+ 851   3              if(win_str_data.set_volume < product_data[win_str_data.product_id].para4.min) win_str_data.set_volume 
+             -= product_data[win_str_data.product_id].para4.min;        
+ 852   3            break;
+ 853   3            case PROG_GRIND_TEMP_OFFSET:
+ 854   3              if(win_str_data.set_grind_temp >product_data[win_str_data.product_id].para3.max) win_str_data.set_grin
+             -d_temp = product_data[win_str_data.product_id].para3.max;
+ 855   3              if(win_str_data.set_grind_temp <product_data[win_str_data.product_id].para3.min) win_str_data.set_grin
+             -d_temp = product_data[win_str_data.product_id].para3.min;
+ 856   3            break;
+ 857   3            case PROG_GRIND_SPEED_OFFSET:
+ 858   3              if(win_str_data.set_grind_speed > product_data[win_str_data.product_id].para1.max) win_str_data.set_gr
+             -ind_speed = product_data[win_str_data.product_id].para1.max;    
+ 859   3              if(win_str_data.set_grind_speed < product_data[win_str_data.product_id].para1.min) win_str_data.set_gr
+             -ind_speed = product_data[win_str_data.product_id].para1.min;  
+ 860   3            break;
+ 861   3            case PROG_GRIND_TIME_OFFSET:
+ 862   3              if(win_str_data.set_grind_time > product_data[win_str_data.product_id].para2.max) win_str_data.set_gri
+             -nd_time = product_data[win_str_data.product_id].para2.max;    
+ 863   3              if(win_str_data.set_grind_time < product_data[win_str_data.product_id].para2.min) win_str_data.set_gri
+             -nd_time = product_data[win_str_data.product_id].para2.min;  
+ 864   3            break;
+ 865   3      
+ 866   3          
+ 867   3            default:break;
+ 868   3          }
+ 869   2        }
+ 870   1      }
+ 871          
+ 872          
+ 873          void win_disp_total_time(u16 val)
+ 874          {
+ 875   1        u16 xdata m_dat;
+ 876   1        u16 xdata s_dat;
+ 877   1        m_dat = (val%3600)/60;
+ 878   1        s_dat = (val%3600)%60;
+ 879   1        sys_write_vp(ARTNUM_WORK_TOTAL_TIME_ADDR,(u8*)&s_dat,1);
+ 880   1        sys_write_vp(ARTNUM_WORK_TOTAL_TIME_HADDR,(u8*)&m_dat,1);
+ 881   1      }
+ 882          
+ 883          void win_disp_speed(u16 val)
+ 884          {
+ 885   1        sys_write_vp(ARTNUM_MAIN_SPEED_ADDR,(u8*)&val,1);
+C51 COMPILER V9.60.7.0   START_WIN                                                         03/20/2026 14:51:31 PAGE 16  
+
+ 886   1      }
+ 887          void win_disp_volume(u16 val)
+ 888          {
+ 889   1        sys_write_vp(ARTNUM_MAIN_VOLUME_ADDR,(u8*)&val,1);
+ 890   1      }
+ 891          void win_disp_temp(u16 val)
+ 892          {
+ 893   1        sys_write_vp(ARTNUM_MAIN_TEMP_ADDR,(u8*)&val,1);
+ 894   1      }
+ 895          
+ 896          void win_disp_grind_time(u16 val)
+ 897          {
+ 898   1        u16 xdata m_dat;
+ 899   1        u16 xdata s_dat;
+ 900   1        m_dat = (val%3600)/60;
+ 901   1        s_dat = (val%3600)%60;
+ 902   1        sys_write_vp(ARTNUM_MAIN_GRINDING_TIME_ADDR,(u8*)&s_dat,1);
+ 903   1        sys_write_vp(ARTNUM_MAIN_GRINDING_TIME_HADDR,(u8*)&m_dat,1);
+ 904   1      }
+ 905          void win_disp_cooling_time(u16 val)
+ 906          {
+ 907   1        u16 xdata m_dat;
+ 908   1        u16 xdata s_dat;
+ 909   1        m_dat = (val%3600)/60;
+ 910   1        s_dat = (val%3600)%60;
+ 911   1        sys_write_vp(ARTNUM_MAIN_COOLING_TIME_ADDR,(u8*)&s_dat,1);
+ 912   1        sys_write_vp(ARTNUM_MAIN_COOLING_TIME_HADDR,(u8*)&m_dat,1);
+ 913   1      }
+ 914          void win_disp_real_temper(u16 val1,u16 val2)
+ 915          {
+ 916   1        
+ 917   1        win_str_data.side_temp = (val1*0.1212) - 200;
+ 918   1      //  win_str_data.bottom_temp = ((val2*0.1212) - 200)+20;
+ 919   1      
+ 920   1        win_str_data.disp_temperature = win_str_data.side_temp;
+ 921   1          
+ 922   1        
+ 923   1        if(win_str_data.disp_temperature < -196) 
+ 924   1        {
+ 925   2          win_str_data.disp_temperature = 0;
+ 926   2        }
+ 927   1        else
+ 928   1        {
+ 929   2          if((int)win_str_data.disp_temperature <= 0)
+ 930   2          if(win_str_data.disp_temperature <= (int)win_str_data.use_grind_temp)
+ 931   2          {
+ 932   3            win_str_data.disp_temperature = win_str_data.use_grind_temp;
+ 933   3          }
+ 934   2        }
+ 935   1        
+ 936   1      
+ 937   1        sys_write_vp(ARTNUM_FAC_BOTTOM_TEMP_ADDR,(u8*)&win_str_data.bottom_temp,1);
+ 938   1        sys_write_vp(ARTNUM_FAC_SIDE_TEMP_ADDR,(u8*)&win_str_data.side_temp,1);
+ 939   1      
+ 940   1        sys_write_vp(ARTNUM_MAIN_DISP_TEMP_ADDR,(u8*)&win_str_data.disp_temperature,1);
+ 941   1      }
+*** WARNING C280 IN LINE 914 OF ..\GUI_APP\start_win.c: 'val2': unreferenced local variable
+ 942          void win_disp_weight(u16 val)
+ 943          {
+ 944   1        sys_write_vp(ARTNUM_MAIN_WEIGHT_ADDR,(u8*)&val,1);
+ 945   1      }
+ 946          void win_disp_prog_num(u16 val)
+C51 COMPILER V9.60.7.0   START_WIN                                                         03/20/2026 14:51:31 PAGE 17  
+
+ 947          {
+ 948   1        sys_write_vp(ARTNUM_MAIN_PROG_NUM_ADDR,(u8*)&val,1);
+ 949   1      }
+ 950          
+ 951          
+ 952          
+ 953          
+ 954          //****************************窗口数据初始化****************************
+ 955          void win_init(void)
+ 956          {
+ 957   1        u32 xdata temp = 0;
+ 958   1      //init workbence para
+ 959   1        memset(&win_str_data,0,sizeof(win_str_data));
+ 960   1      //read from flash///////////////////////////////////////////
+ 961   1        norflash_read(SYS_LOGO_OFFSET,(u8 *)&win_str_data.logo,8);
+ 962   1        
+ 963   1        win_str_data.product_id = 0;
+ 964   1      
+ 965   1      //2.load system parametes settings
+ 966   1        win_load_setpara(); 
+ 967   1      
+ 968   1        win_str_data.used_time = win_str_data.used_time_h;
+ 969   1        win_str_data.used_time <<= 16;
+ 970   1        win_str_data.used_time |= win_str_data.used_time_l;
+ 971   1        win_str_data.disp_time = win_str_data.used_time/3600;  //小时数//7.机型匹配 
+ 972   1        
+ 973   1        if(win_str_data.logo == 4) //no logo
+ 974   1          sys_write_vp(STRING_PRODUCT_ADDR,(u8*)modle_version,sizeof(modle_version));
+ 975   1        else
+ 976   1          sys_write_vp(STRING_PRODUCT_ADDR,(u8*)product_data[win_str_data.product_id].name,sizeof(product_data[win
+             -_str_data.product_id].name));
+ 977   1        sys_write_vp(STRING_VERSION_ADDR,(u8*)Software_version,sizeof(Software_version));
+ 978   1        
+ 979   1        if(win_str_data.prog_grp > 20 || win_str_data.prog_grp < 1) win_str_data.prog_grp = 1;
+ 980   1        win_load_prog_paras(PROG_COOLING_TIME_OFFSET,(u8 *)&win_str_data.set_cooling_time,6);
+ 981   1        memcpy((u8 *)&win_str_data.use_cooling_time,(u8 *)&win_str_data.set_cooling_time,10);          //display 
+             -set
+ 982   1        
+ 983   1      //10. calc level vs voltage function
+ 984   1        win_calc_function();  
+ 985   1        sys_delay_about_ms(4000);  
+ 986   1      //11. jump work page  
+ 987   1      
+ 988   1        if(win_str_data.medium_flag == 1) win_change_page(N2_MAIN); 
+ 989   1        else if(win_str_data.medium_flag == 2) win_change_page(CO2_MAIN); 
+ 990   1      }
+ 991          /******************************************************************************************
+ 992          函数：void win_fresh_window(SysDataDef *sys)
+ 993          函数功能：刷新窗口图标                                                            
+ 994          *******************************************************************************************/
+ 995          void win_fresh_window()
+ 996          {
+ 997   1        if(str_sys.door == 0)
+ 998   1        {
+ 999   2          win_str_data.door_state = 1;
+1000   2        }
+1001   1        else
+1002   1        {
+1003   2          win_str_data.door_state = 0;
+1004   2          win_str_data.start = 0;
+1005   2        }
+1006   1        
+C51 COMPILER V9.60.7.0   START_WIN                                                         03/20/2026 14:51:31 PAGE 18  
+
+1007   1        sys_write_vp(ICON_DOOR_ADDR,(u8*)&win_str_data.door_state,1);
+1008   1        
+1009   1        win_disp_real_temper(str_sys.side_vol,str_sys.bottom_vol);  //主页面显示温度
+1010   1        win_str_data.measure_weight = str_sys.weight;
+1011   1        win_disp_weight(win_str_data.measure_weight);  //主页面显示测量重量
+1012   1        sys_write_vp(ARTNUM_WORK_ADD_LIQUID_ADDR,(u8*)&win_str_data.add_liquid,1);
+1013   1        sys_write_vp(ICON_RUN_STEP_ADDR,(u8*)&win_str_data.run_step,1);
+1014   1      }
+1015          
+1016          /******************************************************************************************
+1017          函数：u16 win_level_trans_volt(u16 level)
+1018          函数功能：计算输出电压值                                                                    
+1019          *******************************************************************************************/
+1020          u16 win_level_trans_volt(u16 level)       //计算电压值
+1021          {
+1022   1        float temp;
+1023   1        STR_WIN_TypeDef *obj = &win_str_data;
+1024   1        
+1025   1        temp = level;
+1026   1        
+1027   1        temp = (float)(obj->k_factor * temp)+obj->b_factor; 
+1028   1        
+1029   1        if(temp >6000)
+1030   1        temp =6000;
+1031   1        
+1032   1        return (u16)temp;
+1033   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =  10550    ----
+   CONSTANT SIZE    =     22    ----
+   XDATA SIZE       =    182     137
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  1 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,313 @@
+C51 COMPILER V9.60.7.0   TASK_MANAGER                                                      03/20/2026 14:03:36 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE TASK_MANAGER
+OBJECT MODULE PLACED IN ..\OBJ\Task_manager.obj
+COMPILER INVOKED BY: D:\Keil_v5\C51\BIN\C51.EXE Task_manager.c LARGE OMF2 OPTIMIZE(3,SIZE) BROWSE INCDIR(..\USER;..\FUNC
+                    -_HANDLER;..\GUI_APP;..\HANDWARE\NOR_FLASH;..\HANDWARE\USART;..\T5LDriver) DEBUG PRINT(..\OBJ\Task_manager.lst) TABS(2) O
+                    -BJECT(..\OBJ\Task_manager.obj)
+
+line level    source
+
+   1          //############################################################
+   2          // FILE:  Task_manager.c
+   3          // Created on: 2022年2月20日
+   4          // Author: Jason
+   5          // summary: Task_manager
+   6          //############################################################
+   7          #include "main.h"
+   8          
+   9          void Send_voltage_service(void);
+  10          
+  11          #define Task_Num   4   //task +1
+  12          #define HFPeriod_COUNT     1    //1ms
+  13          #define RTUPeriod_COUNT    50    //50ms
+  14          #define FSMPeriod_COUNT    5    //5ms
+  15          #define TIMERPeriod_COUNT  250   //250ms
+  16          
+  17          TaskTime xdata TasksPare[Task_Num];
+  18          extern code const Product_TypeDef product_data[PRODUCT_TOTAL];
+  19          void Timer_Task_Count(void)
+  20          {
+  21   1        u8 data Task_Count=0;
+  22   1       for(Task_Count=0;Task_Count<Task_Num;Task_Count++)    //TASK_NUM=5
+  23   1       {
+  24   2        if((TasksPare[Task_Count].Task_Count<TasksPare[Task_Count].Task_Period)&&(TasksPare[Task_Count].Task_Per
+             -iod>0))
+  25   2        {
+  26   3          TasksPare[Task_Count].Task_Count++;   // 计数 事件任务计数
+  27   3        }
+  28   2       }
+  29   1      }
+  30          
+  31          void Execute_Task_List_RUN(void)
+  32          {
+  33   1        u8 data Task_Count = 0;
+  34   1       for(Task_Count=0;Task_Count < Task_Num;Task_Count++)
+  35   1       {
+  36   2        if((TasksPare[Task_Count].Task_Count>=TasksPare[Task_Count].Task_Period)&&(TasksPare[Task_Count].Task_Pe
+             -riod > 0))
+  37   2        {
+  38   3          TasksPare[Task_Count].Task_Function();  // 运行计数的时间任务函数
+  39   3          TasksPare[Task_Count].Task_Count=0;
+  40   3        }
+  41   2       }
+  42   1      }
+  43          #define SPK_TIME_OUT_TIMES 5       //蜂鸣器响5次
+  44          void Task_Timer_Sec(void)  //  250ms运行一次
+  45          {
+  46   1        static u16 xdata state = 0;
+  47   1        static u16 xdata flag = 0;
+  48   1        static u16 xdata tick = 0;
+  49   1        tick++; 
+  50   1        if(tick >= 4)    //250ms进一次，4次为1s
+  51   1        {
+C51 COMPILER V9.60.7.0   TASK_MANAGER                                                      03/20/2026 14:03:36 PAGE 2   
+
+  52   2          tick = 0;
+  53   2      
+  54   2          if(win_str_data.state == FSM_FREEZE)
+  55   2          {
+  56   3            win_str_data.use_cooling_time --;
+  57   3          }
+  58   2          if(win_str_data.state == FSM_FREEZE ||  win_str_data.state == FSM_RUN)
+  59   2          {
+  60   3            win_str_data.total_time--;
+  61   3            win_disp_total_time(win_str_data.total_time);
+  62   3            win_str_data.used_time++;
+  63   3          }
+  64   2          
+  65   2          if(win_str_data.state == FSM_READY)
+  66   2            state = 0;
+  67   2          if(win_str_data.state == FSM_FEED_LIQUOR || win_str_data.state == FSM_FREEZE)
+  68   2          {
+  69   3            flag ++;
+  70   3            if(state == 0)
+  71   3            {
+  72   4              RTU_Cmd_Pending(RTU_START,MC_FWD); 
+  73   4              state = 1;
+  74   4            }
+  75   3            if(state == 1)
+  76   3            {
+  77   4              if(flag >= 6)
+  78   4              {
+  79   5                flag = 0;
+  80   5                RTU_Cmd_Pending(RTU_STOP,MC_STOP); 
+  81   5                state = 2;
+  82   5              }
+  83   4            }
+  84   3            if(state == 2)
+  85   3            {
+  86   4              if(flag >= 6)
+  87   4              {
+  88   5                flag = 0;
+  89   5                if(win_str_data.state == FSM_FEED_LIQUOR)
+  90   5                win_str_data.add_liquid = (win_str_data.measure_weight - win_str_data.save_weight)*10; //0.01为10g
+  91   5                if(win_str_data.add_liquid <= 0) win_str_data.add_liquid = 0;
+  92   5                state = 3;
+  93   5              }
+  94   4            }
+  95   3            if(state == 3)
+  96   3            {
+  97   4              flag = 0;
+  98   4              RTU_Cmd_Pending(RTU_START,MC_REV); 
+  99   4              state = 4;
+ 100   4            }
+ 101   3            if(state == 4)
+ 102   3            {
+ 103   4              if(flag >= 6)
+ 104   4              {
+ 105   5                flag = 0;
+ 106   5                RTU_Cmd_Pending(RTU_STOP,MC_STOP); 
+ 107   5                state = 5;
+ 108   5              }
+ 109   4            }
+ 110   3            if(state == 5)
+ 111   3            {
+ 112   4              if(flag >= 6)
+ 113   4              {
+C51 COMPILER V9.60.7.0   TASK_MANAGER                                                      03/20/2026 14:03:36 PAGE 3   
+
+ 114   5                flag = 0;
+ 115   5                if(win_str_data.state == FSM_FEED_LIQUOR)
+ 116   5                win_str_data.add_liquid = (win_str_data.measure_weight - win_str_data.save_weight)*10; //0.01为10g
+ 117   5                if(win_str_data.add_liquid <= 0) win_str_data.add_liquid = 0;
+ 118   5                state = 0;
+ 119   5              }
+ 120   4            } 
+ 121   3          }
+ 122   2        }
+ 123   1        
+ 124   1        
+ 125   1        if(win_str_data.delay > 0) win_str_data.delay--;
+ 126   1      }
+ 127          void RTU_send_Rece(void)  // 100ms数据周期，可自行修改周期，最快1ms
+ 128          {
+ 129   1        RTU_Send_Task_Handler();
+ 130   1      }
+ 131          
+ 132          /*********************状态机******************************/
+ 133          void Run_FSM(void)   //FSM状态机 
+ 134          {
+ 135   1        switch(win_str_data.state)
+ 136   1        {
+ 137   2          case FSM_INIT:
+ 138   2            win_str_data.state = FSM_READY;
+ 139   2            break;
+ 140   2          
+ 141   2          case FSM_READY:   //****************状态机：准备状态****************************************************
+             -****  
+ 142   2              win_str_data.use_cooling_time = win_str_data.set_cooling_time;
+ 143   2              win_str_data.use_volume = win_str_data.set_volume;
+ 144   2              win_str_data.use_grind_temp = win_str_data.set_grind_temp;
+ 145   2              win_str_data.use_grind_speed = win_str_data.set_grind_speed;
+ 146   2              win_str_data.use_grind_time = win_str_data.set_grind_time;
+ 147   2          
+ 148   2              if(win_str_data.start == 1)    //接收到Start_win  start=1开始信号
+ 149   2              {
+ 150   3                if(win_str_data.medium_flag == 1)
+ 151   3                  win_str_data.state = FSM_START;
+ 152   3                else if(win_str_data.medium_flag == 2)
+ 153   3                {
+ 154   4                  win_str_data.state = FSM_FREEZE;
+ 155   4                  RTU_Cmd_Pending(RTU_SET_VLOTAGE,200);
+ 156   4                }
+ 157   3              }
+ 158   2              else
+ 159   2              {
+ 160   3                win_str_data.start = 0;
+ 161   3              }
+ 162   2            break;
+ 163   2          case FSM_START:
+ 164   2                RTU_Cmd_Pending(RTU_VALVE_ON,1);
+ 165   2                win_str_data.run_step = 0;    //0:加液氮 1:降温  2：研磨 
+ 166   2                win_str_data.delay = 40;
+ 167   2                win_str_data.state = FSM_WAIT; 
+ 168   2            break;
+ 169   2          case FSM_WAIT:  //等待温度到5度以下
+ 170   2                if(win_str_data.delay == 0)
+ 171   2                {
+ 172   3                  win_str_data.save_weight = win_str_data.measure_weight;
+ 173   3                  win_str_data.add_liquid = 0;
+ 174   3                  RTU_Cmd_Pending(RTU_SET_VLOTAGE,200);
+C51 COMPILER V9.60.7.0   TASK_MANAGER                                                      03/20/2026 14:03:36 PAGE 4   
+
+ 175   3                  win_str_data.state = FSM_FEED_LIQUOR;             
+ 176   3                }
+ 177   2                if(win_str_data.start == 0) 
+ 178   2                {
+ 179   3                  win_str_data.state = FSM_STOP;
+ 180   3                }
+ 181   2            break;
+ 182   2          case FSM_FEED_LIQUOR:  //加液氮   //win_str_data.add_liquid ml数
+ 183   2          
+ 184   2                if(win_str_data.add_liquid >= win_str_data.use_volume || win_str_data.disp_temperature <= (int)wi
+             -n_str_data.use_grind_temp)
+ 185   2                {
+ 186   3                  RTU_Cmd_Pending(RTU_VALVE_OFF,0);
+ 187   3                  RTU_Cmd_Pending(RTU_FAN_ON,1);
+ 188   3                  win_str_data.run_step = 1;  //0:加液氮 1:降温过程  2：研磨 
+ 189   3                  win_str_data.state = FSM_FREEZE; 
+ 190   3                }
+ 191   2                if(win_str_data.start == 0) 
+ 192   2                {
+ 193   3                  win_str_data.state = FSM_STOP;
+ 194   3                }
+ 195   2            break;
+ 196   2          case FSM_FREEZE:  //冷冻
+ 197   2                if(win_str_data.use_cooling_time == 0)
+ 198   2                {
+ 199   3                  RTU_Cmd_Pending(RTU_START,MC_FWD); 
+ 200   3                  win_str_data.run_step = 2;   //0:加液氮 1:降温  2：研磨 
+ 201   3                  win_str_data.state = FSM_RUN;
+ 202   3                }
+ 203   2                if(win_str_data.start == 0) 
+ 204   2                {
+ 205   3                  win_str_data.state = FSM_STOP;
+ 206   3                }
+ 207   2            break;
+ 208   2          case FSM_RUN:
+ 209   2              Send_voltage_service();
+ 210   2      
+ 211   2              if(win_str_data.total_time == 0) win_str_data.start=0;
+ 212   2              if(win_str_data.start == 0) win_str_data.state = FSM_STOP;
+ 213   2            break;
+ 214   2          
+ 215   2          case FSM_STOP:
+ 216   2              if(win_str_data.medium_flag == 1) win_change_page(N2_MAIN); 
+ 217   2              else if(win_str_data.medium_flag == 2) win_change_page(CO2_MAIN);     
+ 218   2          
+ 219   2              RTU_Cmd_Pending(RTU_FAN_OFF,0);  //风扇关闭
+ 220   2              RTU_Cmd_Pending(RTU_VALVE_OFF,0); //液氮阀门关闭
+ 221   2              RTU_Cmd_Pending(RTU_STOP,MC_STOP);  //电机停止
+ 222   2              win_str_data.start = 0;
+ 223   2          
+ 224   2              win_str_data.used_time_l = win_str_data.used_time & 0xffff;  //Save used time
+ 225   2              win_str_data.used_time_h = (win_str_data.used_time>>16) & 0xffff; 
+ 226   2              norflash_write(RUNTIME_MIN_HADDR,(u8*)&win_str_data.used_time_h,2);
+ 227   2        
+ 228   2          
+ 229   2              win_str_data.state = FSM_READY;
+ 230   2            break;
+ 231   2          default:
+ 232   2            break;
+ 233   2        }
+ 234   1      }
+ 235          void HFPeriod_1msTask(void)
+C51 COMPILER V9.60.7.0   TASK_MANAGER                                                      03/20/2026 14:03:36 PAGE 5   
+
+ 236          {
+ 237   1        btn_click_handler();            //按钮点击事件处理  
+ 238   1        rtu_response_handler();
+ 239   1        win_fresh_window();     //刷新界面
+ 240   1      }
+ 241          
+ 242          
+ 243          void Task_Manage_List_Init(void)
+ 244          {
+ 245   1        TasksPare[0].Task_Period = HFPeriod_COUNT; //PERIOD_COUNT=1    1ms
+ 246   1        TasksPare[0].Task_Count = 1;
+ 247   1        TasksPare[0].Task_Function = HFPeriod_1msTask;  
+ 248   1      
+ 249   1        TasksPare[1].Task_Period = RTUPeriod_COUNT; //2ms
+ 250   1        TasksPare[1].Task_Count = 8;
+ 251   1        TasksPare[1].Task_Function = RTU_send_Rece; //  通讯接收和发送;
+ 252   1      
+ 253   1        TasksPare[2].Task_Period = FSMPeriod_COUNT; //100ms
+ 254   1        TasksPare[2].Task_Count=80;
+ 255   1        TasksPare[2].Task_Function = Run_FSM;//  通讯接收和发送;
+ 256   1      
+ 257   1        TasksPare[3].Task_Period = TIMERPeriod_COUNT;//500ms
+ 258   1        TasksPare[3].Task_Count=300;
+ 259   1        TasksPare[3].Task_Function = Task_Timer_Sec;   // 500ms的LED的闪烁
+ 260   1      }
+ 261          
+ 262          void Send_voltage_service(void)
+ 263          {
+ 264   1        u16 vol_temp;
+ 265   1        vol_temp = win_level_trans_volt(win_str_data.use_grind_speed);   //读取计算电压值
+ 266   1        if(str_sys.set_vol != vol_temp)    //读取到下位机电压值不等于设置电压值
+ 267   1        {
+ 268   2          str_sys.set_vol = vol_temp;
+ 269   2          RTU_Cmd_Pending(RTU_SET_VLOTAGE,vol_temp);
+ 270   2        }
+ 271   1      }
+ 272          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1667    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =     34       2
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       2
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
