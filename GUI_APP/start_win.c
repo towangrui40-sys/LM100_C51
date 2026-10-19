@@ -87,7 +87,7 @@ void btn_hold_res_callback(u16 addr,u16 val)   //按钮值改变再进入
 	switch(addr)
 	{
 		case BTN_PROG_MODE_SET_ADDR://0x1110			
-				win_prog_para_btn_hold_handler(val);
+			win_prog_para_btn_hold_handler(val);
 			break;
 		case BTN_SET_LIGHT_ADDR:
 			win_light_set_btn_hold_handler(val);		
@@ -210,10 +210,10 @@ static void win_load_setpara(void)
 //处理主界面按钮点击事件	
 static void win_main_btn_click_handler(u16 btn_val)
 {
-	#define  BTN_VAL_START	 			     0X01    //start
-	#define  BTN_VAL_STOP	 			       0X02    //start	
+	#define  BTN_VAL_START	 		   0X01    //start
+	#define  BTN_VAL_STOP	 		   0X02    //start	
 	#define  BTN_VAL_SET               0X03    //settings into	
-	#define  BTN_VAL_CONFOIRM	         0X04
+	#define  BTN_VAL_CONFOIRM	       0X04
 	#define  BTN_VAL_CO2               0X05
 	#define  BTN_VAL_N2                0X06
 	#define  BTN_VAL_MAIN_PAGE         0X07
@@ -222,15 +222,18 @@ static void win_main_btn_click_handler(u16 btn_val)
 	
 	#define  BTN_VAL_COOLING_TIME_ADD	 0X0A
 	#define  BTN_VAL_COOLING_TIME_DEC	 0X0B
-	#define  BTN_VAL_VOLUME_ADD	       0X0C
+	#define  BTN_VAL_VOLUME_ADD	         0X0C
 	#define  BTN_VAL_VOLUME_DEC	    	 0X0D	
 	#define  BTN_VAL_TEMP_ADD	      	 0X0E
-	#define  BTN_VAL_TEMP_DEC	     	   0X0F
+	#define  BTN_VAL_TEMP_DEC	     	 0X0F
 	#define  BTN_VAL_SPEED_ADD	   		 0X10
 	#define  BTN_VAL_SPEED_DEC	   	 	 0X11
 	#define  BTN_VAL_MILL_TIME_ADD		 0X12
 	#define  BTN_VAL_MILL_TIME_DEC		 0X13
 	
+	#define  BTN_RETURN_MAIN 		0X20
+	#define  BTN_RETURN_MENU 	    0X21
+	#define  BTN_RETURN_SET 	    0X22
 	u16 xdata temp = 0;
 	switch(btn_val)
 	{
@@ -240,17 +243,17 @@ static void win_main_btn_click_handler(u16 btn_val)
 				if(win_str_data.medium_flag == 1) win_change_page(N2_MAIN_CONFIRM);	
 				else if(win_str_data.medium_flag == 2) win_change_page(CO2_MAIN_CONFIRM);	
 			}
-     break;
+    	 	break;
 		case BTN_VAL_STOP:
 				win_str_data.start = 0;
-     break;			
+    		 break;			
 
 		case BTN_VAL_CONFOIRM:
 				win_str_data.start = 1;
 				win_str_data.total_time = win_str_data.use_cooling_time + win_str_data.use_grind_time;
 					if(win_str_data.medium_flag == 1) win_change_page(N2_RUN);	
 						else if(win_str_data.medium_flag == 2) win_change_page(CO2_RUN);	
-     break;
+   			  break;
 		
 		case BTN_VAL_SET:         //Page1:Setting*****************************
 				Fresh_Service_Time();
@@ -449,6 +452,9 @@ void disp_input_icon(u16 btn_val)
 void disp_input_icon_clean(void)
 {
 	memset(&win_str_data.input_disp1, 0, 5 * sizeof(win_str_data.input_disp1));
+
+	sys_write_vp(BTN_PROG_MODE_SET_ADDR,(u8 *)&win_str_data.input_disp1,2);
+
 	sys_write_vp(ICON_INPUT_DISP1_ADDR,(u8 *)&win_str_data.input_disp1,5);
 	sys_write_vp(ICON_INPUT_WORD1_ADDR,(u8 *)&win_str_data.input_disp1,5);
 }
@@ -543,7 +549,7 @@ static void win_prog_para_btn_hold_handler(u16 btn_val)
 				memset(&win_str_data.input_disp1, 0, 5 * sizeof(win_str_data.input_disp1));
 				sys_write_vp(ICON_INPUT_DISP1_ADDR,(u8 *)&win_str_data.input_disp1,4);
 				sys_write_vp(ICON_INPUT_WORD1_ADDR,(u8 *)&win_str_data.input_disp1,4);
-		
+
 				win_str_data.paras_sel = 0;
 				if(win_str_data.medium_flag == 1) win_change_page(N2_MAIN);	
 				else if(win_str_data.medium_flag == 2) win_change_page(CO2_MAIN);	
@@ -897,7 +903,6 @@ void win_disp_real_temper(u16 val1,u16 val2)
 {
 	
 	win_str_data.side_temp = (val1*0.1212) - 200;
-//	win_str_data.bottom_temp = ((val2*0.1212) - 200)+20;
 
 	win_str_data.disp_temperature = win_str_data.side_temp;
 		
@@ -909,7 +914,7 @@ void win_disp_real_temper(u16 val1,u16 val2)
 	else
 	{
 		if((int)win_str_data.disp_temperature <= 0)
-  	if(win_str_data.disp_temperature <= (int)win_str_data.use_grind_temp)
+  		if(win_str_data.disp_temperature <= (int)win_str_data.use_grind_temp)
 		{
 			win_str_data.disp_temperature = win_str_data.use_grind_temp;
 		}
@@ -1007,11 +1012,9 @@ void win_fresh_window()
 u16 win_level_trans_volt(u16 level)       //计算电压值
 {
 	float temp;
-	STR_WIN_TypeDef	*obj = &win_str_data;
-	
 	temp = level;
 	
-	temp = (float)(obj->k_factor * temp)+obj->b_factor;	
+	temp = (float)(win_str_data.k_factor * temp) + win_str_data.b_factor;	
 	
 	if(temp >6000)
 	temp =6000;

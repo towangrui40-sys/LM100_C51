@@ -2,14 +2,6 @@
 #include "string.h"
 
 
-/**************************************************
-������ַ������#include "func_handler.h"
-��ʾ������ַ��#include "start_win.h"
-
-//������������ص�����
-void btn_click_callback(u16 addr,u16 val)
-
-**************************************************/
 SysDataDef xdata str_sys;
 
 

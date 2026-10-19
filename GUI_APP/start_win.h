@@ -150,7 +150,7 @@ typedef struct{
 	u16 alarm;//
 	u16 used_time_h;
 	u16 used_time_l;	
-	u16 medium_flag;
+	u16 medium_flag;  //1:N2 2:CO2
 	u16 prog_grp;
 	
 	u16 start;	// 0:stop 1:run:2:run-pause
