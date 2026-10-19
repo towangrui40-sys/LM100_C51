@@ -830,55 +830,22 @@ void win_save_prog_paras(u16 offaddr,u8 *var_addr,u16 len)
 	norflash_write(addr,var_addr,len);
 }
 
-/********************************************************
-函数名称：void win_load_prog_paras(u16 offaddr,u8 *var_addr,u16 len)
-函数功能：读取参数
-函数内容：
-u16 offaddr   flash起始地址
-u8 *var_addr  变量地址
-u16 len       变量长度 
-*********************************************************/
+#define CLAMP(var, pmin, pmax) do { \
+    if ((var) > (pmax)) (var) = (pmax); \
+    else if ((var) < (pmin)) (var) = (pmin); \
+} while(0)
 
-void win_load_prog_paras(u16 offaddr,u8 *var_addr,u16 len)
+void win_load_prog_paras(u16 offaddr, u8 *var_addr, u16 len)
 {
-	u16 addr;
-	u16 xdata i;
-	STR_WIN_TypeDef	*obj = &win_str_data;	
+    Product_TypeDef *pd = &product_data[win_str_data.product_id];
 
-	addr =  0x10 * win_str_data.prog_grp + offaddr;
+    norflash_read(0x10 * win_str_data.prog_grp + offaddr, var_addr, len);
 
-	norflash_read(addr,var_addr,len);
-	
-  for(i = 0;i<len;i++)
-	{
-		addr = offaddr + i;
-		switch(addr)
-		{
-			case PROG_COOLING_TIME_OFFSET:
-				if(win_str_data.set_cooling_time > product_data[win_str_data.product_id].para2.max)	win_str_data.set_cooling_time = product_data[win_str_data.product_id].para2.max;	
-				if(win_str_data.set_cooling_time < product_data[win_str_data.product_id].para2.min)	win_str_data.set_cooling_time = product_data[win_str_data.product_id].para2.min;	
-			break;
-			case PROG_VOLUME_OFFSET:	
-				if(win_str_data.set_volume > product_data[win_str_data.product_id].para4.max) win_str_data.set_volume = product_data[win_str_data.product_id].para4.max;
-				if(win_str_data.set_volume < product_data[win_str_data.product_id].para4.min) win_str_data.set_volume = product_data[win_str_data.product_id].para4.min;				
-			break;
-			case PROG_GRIND_TEMP_OFFSET:
-				if(win_str_data.set_grind_temp >product_data[win_str_data.product_id].para3.max) win_str_data.set_grind_temp = product_data[win_str_data.product_id].para3.max;
-				if(win_str_data.set_grind_temp <product_data[win_str_data.product_id].para3.min) win_str_data.set_grind_temp = product_data[win_str_data.product_id].para3.min;
-			break;
-			case PROG_GRIND_SPEED_OFFSET:
-				if(win_str_data.set_grind_speed > product_data[win_str_data.product_id].para1.max) win_str_data.set_grind_speed = product_data[win_str_data.product_id].para1.max;		
-				if(win_str_data.set_grind_speed < product_data[win_str_data.product_id].para1.min) win_str_data.set_grind_speed = product_data[win_str_data.product_id].para1.min;	
-			break;
-			case PROG_GRIND_TIME_OFFSET:
-				if(win_str_data.set_grind_time > product_data[win_str_data.product_id].para2.max) win_str_data.set_grind_time = product_data[win_str_data.product_id].para2.max;		
-				if(win_str_data.set_grind_time < product_data[win_str_data.product_id].para2.min) win_str_data.set_grind_time = product_data[win_str_data.product_id].para2.min;	
-			break;
-
-		
-			default:break;
-		}
-	}
+    CLAMP(win_str_data.set_cooling_time, pd->para2.min, pd->para2.max);
+    CLAMP(win_str_data.set_volume,       pd->para4.min, pd->para4.max);
+    CLAMP(win_str_data.set_grind_temp,   pd->para3.min, pd->para3.max);
+    CLAMP(win_str_data.set_grind_speed,  pd->para1.min, pd->para1.max);
+    CLAMP(win_str_data.set_grind_time,   pd->para2.min, pd->para2.max);
 }
 
 
@@ -887,7 +854,7 @@ void win_disp_total_time(u16 val)
 	u16 xdata m_dat;
 	u16 xdata s_dat;
 	m_dat = (val%3600)/60;
-  s_dat = (val%3600)%60;
+    s_dat = (val%3600)%60;
 	sys_write_vp(ARTNUM_WORK_TOTAL_TIME_ADDR,(u8*)&s_dat,1);
 	sys_write_vp(ARTNUM_WORK_TOTAL_TIME_HADDR,(u8*)&m_dat,1);
 }
